@@ -28,19 +28,19 @@ export default function SignUp() {
                   name="username" 
                   type="text" 
                   placeholder="Username" 
-                  className="bg-transparent border-b-2 border-gray-600 text-xl outline-none text-black" 
+                  className="bg-transparent rounded-none border-b-2 border-gray-600 text-xl outline-none text-black" 
                 />
                 <input 
                   name="email" 
                   type="email" 
                   placeholder="Email" 
-                  className="bg-transparent border-b-2 border-gray-600 text-xl outline-none text-black" 
+                  className="bg-transparent rounded-none border-b-2 border-gray-600 text-xl outline-none text-black" 
                 />
                 <input 
                   name="password" 
                   type="password" 
                   placeholder="Password" 
-                  className="bg-transparent border-b-2 border-gray-600 text-xl outline-none text-black" 
+                  className="bg-transparent rounded-none border-b-2 border-gray-600 text-xl outline-none text-black" 
                 />
                 <button className="bg-slate-800 text-xl text-white font-semibold my-6 py-2 rounded-full shadow">Sign up</button>
               </Form>

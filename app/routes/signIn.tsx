@@ -24,13 +24,13 @@ export default function SignIn() {
               name="email" 
               type="email" 
               placeholder="Email" 
-              className="bg-transparent border-b-2 border-gray-400 text-xl outline-none text-white" 
+              className="bg-transparent rounded-none border-b-2 border-gray-400 text-xl outline-none text-white" 
             />
             <input 
               name="password" 
               type="password" 
               placeholder="Password" 
-              className="bg-transparent border-b-2 border-gray-400 text-xl outline-none text-white" 
+              className="bg-transparent rounded-none border-b-2 border-gray-400 text-xl outline-none text-white" 
             />
             <button className="bg-orange-500 text-xl text-white font-semibold my-6 py-2 rounded-full shadow">Sign in</button>
           </Form>
