@@ -1,10 +1,14 @@
 import { Link, Form } from "@remix-run/react";
+import { ChevronLeft } from "../components/icons/Chevron";
 
 export default function SignIn() {
   return (
     <div className="flex flex-col bg-gradient-to-b from-blue-200 to-blue-100 h-[calc(100dvh)]">
       <div className="flex items-center h-[calc(15dvh)]">
-        <Link to={"/"} className="p-3 text-xl font-semibold">&lt; back</Link>
+        <Link to={"/"} className="flex items-center px-2">
+          <ChevronLeft width="6" height="6" />
+          <p className="text-xl font-light">back</p>
+        </Link>
       </div>
       <div className="flex flex-col bg-slate-800 h-[calc(85dvh)] mt-auto rounded-t-2xl">
         <div className="flex flex-col items-center">
