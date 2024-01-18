@@ -30,12 +30,12 @@ export default function SignIn() {
             <button className="bg-orange-500 text-xl text-white font-semibold my-6 py-2 rounded-full shadow">Sign in</button>
           </Form>
         </div>
-        <div className="h-32 mt-auto rounded-t-2xl bg-white">
+        <Link to={"/signUp"} className="h-32 mt-auto rounded-t-2xl bg-white hover:h-36">
           <div className="flex flex-col justify-center items-center py-4">
             <div className="w-8 h-1 bg-black rounded"></div>
             <p className="font-semibold py-1">Sign up</p>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   )
