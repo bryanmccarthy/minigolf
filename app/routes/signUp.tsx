@@ -1,12 +1,13 @@
 import { Link, Form } from "@remix-run/react";
-import { ChevronLeft } from "../components/icons/Chevron";
 
 export default function SignUp() {
   return (
     <div className="flex flex-col bg-gradient-to-b from-blue-200 to-blue-100 h-[calc(100dvh)]">
       <div className="flex items-center h-[calc(15dvh)]">
         <Link to={"/"} className="flex items-center px-2">
-          <ChevronLeft width="6" height="6" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
           <p className="text-xl font-light">back</p>
         </Link>
       </div>
