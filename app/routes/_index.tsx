@@ -10,7 +10,7 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   return (
-    <div className="flex flex-col bg-gradient-to-b from-blue-200 to-blue-100 h-[calc(100dvh)]">
+    <div className="flex flex-col bg-gradient-to-b from-blue-300 to-blue-200 h-[calc(100dvh)]">
       <p className="text-center py-6 text-5xl font-light text-black drop-shadow">minigolf</p>
       <div className="flex flex-col justify-center items-center pt-4">
         <div className="w-40 h-40 p-8 m-1 bg-green-500 rounded shadow-xl">

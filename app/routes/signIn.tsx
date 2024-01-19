@@ -2,7 +2,7 @@ import { Link, Form } from "@remix-run/react";
 
 export default function SignIn() {
   return (
-    <div className="flex flex-col bg-gradient-to-b from-blue-200 to-blue-100 h-[calc(100dvh)]">
+    <div className="flex flex-col bg-gradient-to-b from-blue-300 to-blue-200 h-[calc(100dvh)]">
       <div className="flex items-center h-[calc(15dvh)]">
         <Link to={"/"} className="flex items-center px-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
