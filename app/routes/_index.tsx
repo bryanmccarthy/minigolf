@@ -1,5 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
+import { getAuth } from "@clerk/remix/ssr.server";
+import { LoaderFunction, redirect } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
   return [
@@ -7,6 +9,15 @@ export const meta: MetaFunction = () => {
     { name: "description", content: "Welcome to Minigolf!" },
   ];
 };
+
+export const loader: LoaderFunction = async (args) => {
+  const { userId } = await getAuth(args);
+  if (userId) {
+    return redirect("/lobby");
+  }
+  
+  return {};
+}
 
 export default function Index() {
   return (
