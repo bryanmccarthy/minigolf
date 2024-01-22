@@ -1,6 +1,23 @@
 import { getAuth } from "@clerk/remix/ssr.server";
 import { LoaderFunction, redirect } from "@remix-run/node";
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useUser } from "@clerk/remix";
+import { Link } from "@remix-run/react";
+import { useState } from "react";
+
+const courses = {
+  0: {
+    name: "Practice",
+  },
+  1: {
+    name: "Course 1",
+  },
+  2: {
+    name: "Course 2",
+  },
+  3: {
+    name: "Course 3",
+  },
+}
 
 export const loader: LoaderFunction = async (args) => {
   const { userId } = await getAuth(args);
@@ -13,6 +30,7 @@ export const loader: LoaderFunction = async (args) => {
 
 export default function Lobby() {
   const { user } = useUser();
+  const [courseSelected, setCourseSelected] = useState(0);
 
   if (!user) {
     return null;
@@ -23,20 +41,36 @@ export default function Lobby() {
       <SignedIn>
         <div className="flex flex-col bg-gradient-to-b from-blue-300 to-blue-200 h-[calc(100dvh)]">
           <div className="flex">
-            <div className="flex flex-col p-2">
-              <p className="text-2xl font-semibold text-black">
-                Lobby (3/4)
-              </p>
-              <div className="flex flex-col gap-2 py-2">
-                <div className="flex items-center w-32 sm:w-40 h-12 bg-slate-700 rounded shadow-lg">
-                  <p className="text-white text-lg px-2 truncate">{user.firstName} (Me)</p>
+            <div className="flex flex-col p-2 border-2">
+              <div className="flex flex-col">
+                <p className="text-2xl font-semibold text-black">
+                  Lobby (3/4)
+                </p>
+                <div className="flex flex-col gap-2 py-2">
+                  <div className="flex items-center w-32 sm:w-40 h-12 bg-slate-700 rounded shadow-lg">
+                    <p className="text-white text-lg px-2 truncate">{user.firstName} (Me)</p>
+                  </div>
+                  <div className="flex items-center w-32 sm:w-40 h-12 bg-white rounded shadow-lg">
+                    <p className="text-black text-lg px-2 truncate">Player 2</p>
+                  </div>
+                  <div className="flex items-center w-32 sm:w-40 h-12 bg-white rounded shadow-lg">
+                    <p className="text-black text-lg px-2 truncate">Player 3</p>
+                  </div>
                 </div>
-                <div className="flex items-center w-32 sm:w-40 h-12 bg-white rounded shadow-lg">
-                  <p className="text-black text-lg px-2 truncate">Player 2</p>
-                </div>
-                <div className="flex items-center w-32 sm:w-40 h-12 bg-white rounded shadow-lg">
-                  <p className="text-black text-lg px-2 truncate">Player 3</p>
-                </div>
+              </div>
+              <div className="flex flex-col pt-2">
+                <p className="text-2xl font-semibold text-black">
+                  Course
+                </p>
+                <form className="flex flex-col gap-2 py-2">
+                <select className="w-32 sm:w-40 h-12 bg-white rounded shadow-lg">
+                  <option>practice</option>
+                  <option>Course 1</option>
+                  <option>Course 2</option>
+                  <option>Course 3</option>
+                </select>
+                <Link to={`/game/${courseSelected}`}>Play</Link>
+                </form>
               </div>
             </div>
             <div className="flex flex-col gap-2 p-2 ml-auto">
