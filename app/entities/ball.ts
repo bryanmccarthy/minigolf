@@ -6,6 +6,7 @@ export default class Ball {
   radius: number;
   color: string;
   moving: boolean = false;
+  inHole: boolean = false;
   friction: number = 0.96;
 
   constructor(x: number, y: number, vx: number, vy: number, radius: number, color: string) {

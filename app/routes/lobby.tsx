@@ -4,21 +4,6 @@ import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useUser } from "@cle
 import { Link } from "@remix-run/react";
 import { useState } from "react";
 
-const courses = {
-  0: {
-    name: "Practice",
-  },
-  1: {
-    name: "Course 1",
-  },
-  2: {
-    name: "Course 2",
-  },
-  3: {
-    name: "Course 3",
-  },
-}
-
 export const loader: LoaderFunction = async (args) => {
   const { userId } = await getAuth(args);
   if (!userId) {
@@ -30,7 +15,7 @@ export const loader: LoaderFunction = async (args) => {
 
 export default function Lobby() {
   const { user } = useUser();
-  const [courseSelected, setCourseSelected] = useState(0);
+  const [courseSelected, setCourseSelected] = useState('practice');
 
   if (!user) {
     return null;
@@ -69,7 +54,7 @@ export default function Lobby() {
                   <option>Course 2</option>
                   <option>Course 3</option>
                 </select>
-                <Link to={`/game/${courseSelected}`}>Play</Link>
+                <Link to={`/${courseSelected}`}>Play</Link>
                 </form>
               </div>
             </div>

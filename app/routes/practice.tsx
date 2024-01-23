@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Link } from "@remix-run/react";
 import Ball from "../entities/ball";
 import Hole from "../entities/hole";
 
@@ -27,18 +28,16 @@ export default function game() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
-    const WIDTH = 1000;
-    const HEIGHT = 800;
+    const WIDTH = 800;
+    const HEIGHT = 600;
     
     if (!ctx) return;
-    ctx.canvas.width = WIDTH;
-    ctx.canvas.height = HEIGHT;
 
     let requestID: number;
 
     // FPS
     let lastTimestamp = 0;
-    const targetFps = 30;
+    const targetFps = 60;
     const timeStep = 1000 / targetFps;
 
     // Mouse
@@ -48,10 +47,11 @@ export default function game() {
 
     // Initial game objects
     const ball = new Ball(WIDTH / 2, HEIGHT / 2, 0, 0, 10, "white");
-    const hole1 = new Hole(250, 150, 20);
-    const hole2 = new Hole(700, 700, 20);
-    const hole3 = new Hole(150, 700, 20);
-    const hole4 = new Hole(850, 350, 20);
+    const holes = [
+      new Hole(100, 100, 20),
+      new Hole(250, 500, 20),
+      new Hole(700, 300, 20),
+    ];
 
     const handleMouseDown = (e: MouseEvent) => {
       if (ball.moving) return;
@@ -82,7 +82,32 @@ export default function game() {
       }
     }
 
-    const updateGame = (timestamp: number) => {
+    const drawOutOfBoundsMessage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = "white";
+      ctx.font = "30px Arial";
+      ctx.fillText("Out of bounds!", width / 2 - 100, height / 2);
+    }
+
+    const handleOutOfBounds = () => {
+      ball.x = WIDTH / 2;
+      ball.y = HEIGHT / 2;
+      ball.vx = 0;
+      ball.vy = 0;
+      ball.moving = false;
+      drawOutOfBoundsMessage(ctx, WIDTH, HEIGHT);
+    }
+
+    const drawHoleMessage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = "white";
+      ctx.font = "30px Arial";
+      ctx.fillText("Hole!", width / 2 - 50, height / 2);
+    }
+
+    const updateGame = async (timestamp: number) => {
       const deltaTime = timestamp - lastTimestamp;
 
       if (deltaTime < timeStep) {
@@ -90,40 +115,39 @@ export default function game() {
         return;
       }
 
-      // TODO: Move collision to ball // Obstacle
+      if (ball.inHole) {
+        drawHoleMessage(ctx, WIDTH, HEIGHT);
+        await new Promise(r => setTimeout(r, 1000));
+        ball.inHole = false;
+        ball.x = WIDTH / 2;
+        ball.y = HEIGHT / 2;
+      }
+
+      // Collisions
       if (ball.x <= 0 || ball.x >= WIDTH) {
-        ball.vx *= -1;
+        handleOutOfBounds();
+        await new Promise(r => setTimeout(r, 1000));
       }
       if (ball.y <= 0 || ball.y >= HEIGHT) {
-        ball.vy *= -1;
+        handleOutOfBounds();
+        await new Promise(r => setTimeout(r, 1000));
       }
 
-      if (ball.x >= hole1.x - hole1.radius && ball.x <= hole1.x + hole1.radius && ball.y >= hole1.y - hole1.radius && ball.y <= hole1.y + hole1.radius) {
-        ball.x = hole1.x;
-        ball.y = hole1.y;
-        ball.vx = 0;
-        ball.vy = 0;
-      }
+      // Hole Collisions
+      for (let i = 0; i < holes.length; i++) {
+        const hole = holes[i];
+        const dx = ball.x - hole.x;
+        const dy = ball.y - hole.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (ball.x >= hole2.x - hole2.radius && ball.x <= hole2.x + hole2.radius && ball.y >= hole2.y - hole2.radius && ball.y <= hole2.y + hole2.radius) {
-        ball.x = hole2.x;
-        ball.y = hole2.y;
-        ball.vx = 0;
-        ball.vy = 0;
-      }
-
-      if (ball.x >= hole3.x - hole3.radius && ball.x <= hole3.x + hole3.radius && ball.y >= hole3.y - hole3.radius && ball.y <= hole3.y + hole3.radius) {
-        ball.x = hole3.x;
-        ball.y = hole3.y;
-        ball.vx = 0;
-        ball.vy = 0;
-      }
-
-      if (ball.x >= hole4.x - hole4.radius && ball.x <= hole4.x + hole4.radius && ball.y >= hole4.y - hole4.radius && ball.y <= hole4.y + hole4.radius) {
-        ball.x = hole4.x;
-        ball.y = hole4.y;
-        ball.vx = 0;
-        ball.vy = 0;
+        if (distance < hole.radius) {
+          ball.x = hole.x;
+          ball.y = hole.y;
+          ball.vx = 0;
+          ball.vy = 0;
+          ball.moving = false;
+          ball.inHole = true;
+        }
       }
 
       // Update ball
@@ -137,10 +161,9 @@ export default function game() {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Hole
-      hole1.draw(ctx);
-      hole2.draw(ctx);
-      hole3.draw(ctx);
-      hole4.draw(ctx);
+      for (let i = 0; i < holes.length; i++) {
+        holes[i].draw(ctx);
+      }
 
       // Ball
       ball.draw(ctx);
@@ -172,8 +195,18 @@ export default function game() {
   }, []);
 
   return (
-    <div className="flex justify-center items-center w-full h-[calc(100dvh)]">
-      <canvas ref={canvasRef} />
+    <div className="flex flex-col w-full h-[calc(100dvh)] bg-blue-400">
+      <div className="flex py-4">
+        <Link to={"/lobby"} className="flex items-center text-lg px-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+          <p>Back to lobby</p>
+        </Link>
+      </div>
+      <div className="flex justify-center items-center">
+        <canvas ref={canvasRef} width={800} height={600} className="rounded-lg" />
+      </div>
     </div>
   )
 }
