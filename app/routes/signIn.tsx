@@ -1,7 +1,38 @@
-import { Link, Form } from "@remix-run/react";
-import { SignIn } from "@clerk/remix";
+import { Form, Link } from "@remix-run/react";
+import { useState } from "react";
+import { useOutletContext } from "@remix-run/react";
+import type { OutletContext } from "../utils/types";
+
+// TODO: maybe use action to sign in for use of redirect?
 
 export default function SignInPage() {
+  const { supabase } = useOutletContext<OutletContext>();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const signIn = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+      // TODO: handle error
+      console.log("error: ", error);
+    }
+    else {
+      if (data.user) {
+        // TODO: redirect to lobby
+        console.log("data: ", data);
+      }
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    signIn(email, password);
+  }
+
   return (
     <div className="flex flex-col bg-white h-[calc(100dvh)]">
       <div className="flex items-center">
@@ -22,7 +53,27 @@ export default function SignInPage() {
               <div className="w-8 h-1 bg-white rounded"></div>
             </Link>
             <div className="py-4 sm:py-8 md:py-12 lg:py-16">
-              <SignIn />
+              <Form method="post" onSubmit={handleSubmit}>
+                <div className="flex flex-col gap-6 py-12">
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    className="w-64 h-12 px-4 bg-white rounded shadow-lg"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    className="w-64 h-12 px-4 bg-white rounded shadow-lg"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button type="submit" className="w-64 h-12 bg-slate-400 rounded shadow-lg">Sign In</button>
+                </div>
+              </Form>
             </div>
           </div>
         </div>

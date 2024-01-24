@@ -1,7 +1,6 @@
 import type { MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
-import { getAuth } from "@clerk/remix/ssr.server";
-import { LoaderFunction, redirect } from "@remix-run/node";
+import { Link, useOutletContext } from "@remix-run/react";
+import type { OutletContext } from "../utils/types";
 
 export const meta: MetaFunction = () => {
   return [
@@ -10,16 +9,16 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader: LoaderFunction = async (args) => {
-  const { userId } = await getAuth(args);
-  if (userId) {
-    return redirect("/lobby");
-  }
-  
-  return {};
-}
-
 export default function Index() {
+  const { session, supabase } = useOutletContext<OutletContext>();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    // TODO: handle error
+    console.log("error: ", error);
+  }
+
   return (
     <div className="flex flex-col bg-gradient-to-b from-blue-300 to-blue-200 h-[calc(100dvh)]">
       <p className="text-center py-6 text-5xl font-light text-black drop-shadow">minigolf</p>
@@ -32,9 +31,13 @@ export default function Index() {
         <div className="w-20 h-20 p-8 m-1 bg-green-500 rounded mr-8 shadow-md">
         </div>
       </div>
-      <div className="flex justify-center items-center pt-16">
-        <Link to={"/signIn"} className="flex justify-center items-center bg-slate-700 mx-4 w-28 h-10 text-white rounded-md shadow">Sign In</Link>
-        <button className="bg-orange-500 mx-8 w-28 h-10 text-white rounded-md shadow">Guest</button>
+      <div className="flex flex-col gap-4 justify-center items-center pt-16">
+        <Link to={"/lobby"} className="flex justify-center items-center bg-slate-700 mx-4 w-56 h-10 text-white rounded-md shadow">Lobby</Link>
+        { session && session.user ?
+          <button className="flex justify-center items-center bg-slate-700 mx-4 w-56 h-10 text-white rounded-md shadow" onClick={handleSignOut}>Sign Out</button>
+        :
+          <Link to={"/signIn"} className="flex justify-center items-center bg-slate-700 mx-4 w-56 h-10 text-white rounded-md shadow">Sign In/up</Link>
+        }
       </div>
     </div>
   );
