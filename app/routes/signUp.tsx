@@ -43,7 +43,8 @@ export default function SignUpPage() {
             <Link to={"/signIn"} className="flex justify-center items-center py-4 w-full">
               <div className="w-8 h-1 bg-black rounded"></div>
             </Link>
-            <div className="py-4 sm:py-8 md:py-12 lg:py-16">
+            <div className="py-4 sm:py-12 md:py-16 lg:py-20">
+              <p className="w-32 text-xl sm:text-2xl text-black">Create account</p>
               <form onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-6 py-12">
                   <input
@@ -62,7 +63,7 @@ export default function SignUpPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <button type="submit" className="w-64 h-12 bg-slate-400 rounded shadow-lg">Sign Up</button>
+                  <button type="submit" className="w-64 h-12 text-white bg-slate-800 rounded-full shadow-lg">Sign Up</button>
                 </div>
               </form>
             </div>
