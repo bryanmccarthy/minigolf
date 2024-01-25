@@ -1,5 +1,4 @@
 import { Link } from "@remix-run/react";
-// import { supabase } from "../supabaseClient";
 import { useState } from "react";
 import { useOutletContext } from "@remix-run/react";
 import type { OutletContext } from "../utils/types";

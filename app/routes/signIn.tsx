@@ -1,12 +1,14 @@
-import { Form, Link } from "@remix-run/react";
+import { Link } from "@remix-run/react";
 import { useState } from "react";
 import { useOutletContext } from "@remix-run/react";
 import type { OutletContext } from "../utils/types";
+import { useNavigate } from "@remix-run/react";
 
 // TODO: maybe use action to sign in for use of redirect?
 
 export default function SignInPage() {
   const { supabase } = useOutletContext<OutletContext>();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -22,8 +24,8 @@ export default function SignInPage() {
     }
     else {
       if (data.user) {
-        // TODO: redirect to lobby
         console.log("data: ", data);
+        navigate("/lobby");
       }
     }
   }
@@ -54,7 +56,7 @@ export default function SignInPage() {
             </Link>
             <div className="py-4 sm:py-12 md:py-16 lg:py-20">
               <p className="w-32 text-xl sm:text-2xl text-white">Welcome back</p>
-              <Form method="post" onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-6 py-12">
                   <input
                     type="email"
@@ -74,7 +76,7 @@ export default function SignInPage() {
                   />
                   <button type="submit" className="w-64 h-12 bg-orange-300 rounded-full shadow-lg">Sign In</button>
                 </div>
-              </Form>
+              </form>
             </div>
           </div>
         </div>
