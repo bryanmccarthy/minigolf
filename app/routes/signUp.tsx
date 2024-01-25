@@ -8,6 +8,7 @@ export default function SignUpPage() {
   const { supabase } = useOutletContext<OutletContext>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayConfirmEmailText, setDisplayConfirmEmailText] = useState(false);
 
   const signUp = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signUp({
@@ -17,6 +18,13 @@ export default function SignUpPage() {
 
     // TODO: handle error
     console.log("data: ", data, "error: ", error);
+    if (error) {
+      console.log("error: ", error);
+    } else {
+      if (data?.user) {
+        setDisplayConfirmEmailText(true);
+      }
+    }
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,6 +73,13 @@ export default function SignUpPage() {
                   />
                   <button type="submit" className="w-64 h-12 text-white bg-slate-800 rounded-full shadow-lg">Sign Up</button>
                 </div>
+                {displayConfirmEmailText && (
+                  <div className="w-64">
+                    <p className="text-slate-800">Please check your email for confirmation.
+                      <Link to={"/signIn"} className="text-blue-600 px-2">sign in</Link>
+                    </p>
+                  </div>
+                )}
               </form>
             </div>
           </div>
