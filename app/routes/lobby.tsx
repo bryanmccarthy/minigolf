@@ -30,9 +30,15 @@ export default function Lobby() {
               </div>
 
               <div className="flex flex-col">
-                <p className="text-2xl font-semibold text-black">
-                  Lobby (3/4)
-                </p>
+                <div className="flex items-end gap-2">
+                  <p className="text-2xl font-semibold text-black">Lobby (3/4)</p>
+                  {/* TODO: add a condition to only render button if group is not full (4/4) */}
+                  <button onClick={() => {}}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+                      <path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />
+                    </svg>
+                  </button>
+                </div>
                 <div className="flex flex-col gap-2 py-2">
                   <div className="flex items-center w-32 sm:w-40 h-12 bg-slate-700 rounded shadow-lg">
                     <p className="text-white text-lg px-2 truncate">Bryan (Me)</p>
