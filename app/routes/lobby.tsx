@@ -78,13 +78,10 @@ export default function Lobby() {
               </div>
             </div>
             <div className="flex flex-col gap-2 p-2 ml-auto">
-              { session && session.user.email ?
+              { session && session.user.email &&
                 <div className="flex justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
                   <p className="text-black text-2xl font-extrabold">{ session.user.email[0] }</p>
                 </div>
-              :
-                // TODO: add account icon and log in link
-                <></>
               }
               { showUserMenu &&
                 <div className="absolute flex flex-col top-0 right-0 w-56 h-40 m-2 rounded shadow-lg bg-white">
