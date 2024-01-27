@@ -102,22 +102,22 @@ export default function Lobby() {
             </div>
           </div>
           <div className="relative flex flex-col gap-2 p-2 ml-auto">
-            { session && session.user.email &&
+            { session &&
               <div className="flex justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
-                <p className="text-black text-2xl font-extrabold">{ session.user.email[0] }</p>
+                <p className="text-black text-2xl font-extrabold">{ session.user.user_metadata.username[0] }</p>
               </div>
             }
             { showUserMenu &&
-              <div className="absolute flex flex-col top-0 right-0 w-56 h-40 m-2 rounded shadow-lg bg-white">
+              <div className="absolute flex flex-col top-0 right-0 w-56 m-2 rounded shadow-lg bg-white">
                 <button className="text-black text-xl font-semibold ml-auto p-2" onClick={handleToggleUserMenu}>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                   </svg>
                 </button>
-                <div className="flex flex-col gap-3 p-2 mt-auto">
-                  <p className="text-neutral-700 font-semibold truncate">username</p>
-                  <p className="text-neutral-700 font-semibold truncate">{ session && session.user.email ? session.user.email : '' }</p>
-                  <button className="text-red-500 text-start hover:text-red-600" onClick={handleSignOut}>Sign Out</button>
+                <div className="flex flex-col gap-3 p-3 mt-auto">
+                  <p className="text-neutral-700 bg-neutral-100 px-2 py-1 rounded font-semibold truncate">{ session.user.user_metadata.username }</p>
+                  <p className="text-neutral-700 bg-neutral-100 px-2 py-1 rounded font-semibold truncate">{ session.user.email }</p>
+                  <button className="text-red-500 px-2 py-1 text-start hover:text-red-600" onClick={handleSignOut}>Sign Out</button>
                 </div>
               </div>
             }
