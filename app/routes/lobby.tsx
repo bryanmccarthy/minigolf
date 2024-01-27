@@ -59,13 +59,13 @@ export default function Lobby() {
                   </button>
                 </div>
                 <div className="flex flex-col gap-2 py-2">
-                  <div className="flex items-center w-32 sm:w-40 h-12 bg-slate-700 rounded shadow-lg">
+                  <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
                     <p className="text-white text-lg px-2 truncate">Bryan (Me)</p>
                   </div>
-                  <div className="flex items-center w-32 sm:w-40 h-12 bg-white rounded shadow-lg">
+                  <div className="flex items-center h-12 bg-white rounded shadow-lg">
                     <p className="text-black text-lg px-2 truncate">Player 2</p>
                   </div>
-                  <div className="flex items-center w-32 sm:w-40 h-12 bg-white rounded shadow-lg">
+                  <div className="flex items-center h-12 bg-white rounded shadow-lg">
                     <p className="text-black text-lg px-2 truncate">Player 3</p>
                   </div>
                 </div>
@@ -75,13 +75,15 @@ export default function Lobby() {
                   Course
                 </p>
                 <div className="relative flex flex-col gap-2">
-                  <div className="flex items-center justify-between w-32 sm:w-40 h-12 bg-white rounded shadow-lg cursor-pointer" onClick={handleShowCourseDropdown}>
+                  <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg cursor-pointer" onClick={handleShowCourseDropdown}>
                     <p className="text-black text-lg px-2 truncate">{courseSelected}</p>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                     </svg>
                   </div>
-                  <Link to={`/${courseSelected}`}>Play</Link>
+                  <Link to={`/${courseSelected}`} className="flex items-center justify-center bg-orange-300 rounded h-12 shadow-lg">
+                    <p className="text-black text-xl font-semibold">Start</p>
+                  </Link>
                   { showCourseDropdown &&
                     <div className="absolute flex flex-col top-0 right-0 w-full rounded shadow-lg bg-white">
                       <button className="text-black text-xl font-semibold ml-auto p-2" onClick={handleShowCourseDropdown}>
