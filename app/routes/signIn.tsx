@@ -77,6 +77,7 @@ export default function SignInPage() {
                   <button type="submit" className="w-64 h-12 bg-orange-300 rounded-full shadow-lg">Sign In</button>
                 </div>
               </form>
+              <p className="text-white text-center">Don't have an account? <Link to={"/signUp"} className="text-orange-300">Sign Up</Link></p>
             </div>
           </div>
         </div>

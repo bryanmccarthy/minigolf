@@ -13,14 +13,19 @@ export default function SignUpPage() {
     const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
+      options: {
+        data: {
+          username: "test",
+        }
+      }
     });
 
-    // TODO: handle error
-    console.log("data: ", data, "error: ", error);
     if (error) {
       console.log("error: ", error);
     } else {
-      if (data?.user) {
+      if (data?.user?.identities?.length === 0) {
+        console.log("User with email already exists");
+      } else {
         setDisplayConfirmEmailText(true);
       }
     }
@@ -75,7 +80,6 @@ export default function SignUpPage() {
                 {displayConfirmEmailText && (
                   <div className="w-64">
                     <p className="text-slate-800">Please check your email for confirmation.
-                      <Link to={"/signIn"} className="text-blue-600 px-2">sign in</Link>
                     </p>
                   </div>
                 )}
