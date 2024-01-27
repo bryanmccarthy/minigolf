@@ -2,20 +2,23 @@ import { Link } from "@remix-run/react";
 import { useState } from "react";
 import { useOutletContext } from "@remix-run/react";
 import type { OutletContext } from "../utils/types";
+import { useNavigate } from "@remix-run/react";
 
 export default function SignUpPage() {
+  const navigate = useNavigate();
   const { supabase } = useOutletContext<OutletContext>();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayConfirmEmailText, setDisplayConfirmEmailText] = useState(false);
+  // const [displayConfirmEmailText, setDisplayConfirmEmailText] = useState(false);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, username: string) => {
     const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
       options: {
         data: {
-          username: "test",
+          username: username,
         }
       }
     });
@@ -25,15 +28,16 @@ export default function SignUpPage() {
     } else {
       if (data?.user?.identities?.length === 0) {
         console.log("User with email already exists");
+        setEmail("");
       } else {
-        setDisplayConfirmEmailText(true);
+        navigate("/lobby");
       }
     }
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    signUp(email, password);
+    signUp(email, password, username);
   }
 
   return (
@@ -60,6 +64,14 @@ export default function SignUpPage() {
               <form onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-6 py-12">
                   <input
+                    type="text"
+                    name="username"
+                    placeholder="Username"
+                    className="w-64 h-12 px-4 bg-white rounded shadow-lg"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                  <input
                     type="email"
                     name="email"
                     placeholder="Email"
@@ -77,12 +89,12 @@ export default function SignUpPage() {
                   />
                   <button type="submit" className="w-64 h-12 text-white bg-slate-800 rounded-full shadow-lg">Sign Up</button>
                 </div>
-                {displayConfirmEmailText && (
+                {/* {displayConfirmEmailText && (
                   <div className="w-64">
                     <p className="text-slate-800">Please check your email for confirmation.
                     </p>
                   </div>
-                )}
+                )} */}
               </form>
             </div>
           </div>
