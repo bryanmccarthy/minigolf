@@ -3,15 +3,26 @@ import { useState } from "react";
 import { useOutletContext, useNavigate } from "@remix-run/react";
 import type { OutletContext } from "../utils/types";
 
+const courses = [
+  "Practice",
+  "Lazy Links",
+  "Fairways"
+]
+
 export default function Lobby() {
   const navigate = useNavigate();
   const { session, supabase } = useOutletContext<OutletContext>();
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showInvitePane, setShowInvitePane] = useState(false);
 
   const handleToggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
+  }
+
+  const handleToggleInvitePane = () => {
+    setShowInvitePane(!showInvitePane);
   }
 
   const handleShowCourseDropdown = () => {
@@ -42,7 +53,7 @@ export default function Lobby() {
               <div className="flex items-end gap-2">
                 <p className="text-2xl font-semibold text-black">Lobby (3/4)</p>
                 {/* TODO: add a condition to only render button if group is not full (4/4) or full group icon */}
-                <button onClick={() => {}}>
+                <button onClick={handleToggleInvitePane}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
                     <path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />
                   </svg>
@@ -52,7 +63,6 @@ export default function Lobby() {
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
                   <p className="text-white text-lg px-2 truncate">{ session && session.user ? session.user.user_metadata.username : "Guest" } (Me)</p>
                 </div>
-                {/* TODO: Display party members */}
               </div>
             </div>
             <div className="flex flex-col pt-2">
@@ -77,9 +87,10 @@ export default function Lobby() {
                       </svg>
                     </button>
                     <div className="flex flex-col gap-2 pb-2">
-                      <button className="text-black text-lg text-start px-4 truncate hover:bg-gray-200 rounded-full mx-1" onClick={() => handleCourseSelected('Practice')}>Practice</button>
-                      <button className="text-black text-lg text-start px-4 truncate hover:bg-gray-200 rounded-full mx-1" onClick={() => handleCourseSelected('Lazy Links')}>Lazy Links</button>
-                      <button className="text-black text-lg text-start px-4 truncate hover:bg-gray-200 rounded-full mx-1" onClick={() => handleCourseSelected('Fairways')}>Fairways</button>
+                      { courses.filter((course: string) => course !== courseSelected).map((course: string) => (
+                          <button className="text-black text-lg text-start px-4 truncate hover:bg-gray-200 rounded-full mx-1" onClick={() => handleCourseSelected(course)}>{ course }</button>
+                        ))
+                      }
                     </div>
                   </div>
                 }
