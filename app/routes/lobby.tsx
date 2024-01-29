@@ -23,10 +23,12 @@ export default function Lobby() {
   const navigate = useNavigate();
   const { data } = useLoaderData<{ data: any }>();
   const { session, supabase } = useOutletContext<OutletContext>();
+  const [username, setUsername] = useState(session.user.user_metadata.username);
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showInvitePane, setShowInvitePane] = useState(false);
+  const [showUsernameSave, setShowUsernameSave] = useState(false);
 
   const handleToggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
@@ -43,6 +45,16 @@ export default function Lobby() {
   const handleCourseSelected = (course: string) => {
     setCourseSelected(course);
     setShowCourseDropdown(false);
+  }
+
+  const handleUsernameInputChange = (e: any) => {
+    setUsername(e.target.value);
+    setShowUsernameSave(true);
+  }
+
+  const handleUsernameSave = async () => {
+    // TODO: update username in supabase
+    setShowUsernameSave(false);
   }
 
   const handleSignOut = async () => {
@@ -86,6 +98,7 @@ export default function Lobby() {
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
                   <p className="text-white text-lg px-2 truncate">{ session && session.user ? session.user.user_metadata.username : "Guest" } (Me)</p>
                 </div>
+                {/* TODO: Get party members */}
                 { data.map((party: any, idx: number) => (
                     <div key={idx} className="flex items-center h-12 bg-white rounded shadow-lg">
                       <p className="text-black text-lg px-2 truncate">{ party.leader }</p>
@@ -140,8 +153,17 @@ export default function Lobby() {
                   </svg>
                 </button>
                 <div className="flex flex-col gap-3 p-3 mt-auto">
-                  <p className="text-neutral-700 bg-neutral-100 px-2 py-1 rounded font-semibold truncate">{ session.user.user_metadata.username }</p>
-                  <p className="text-neutral-700 bg-neutral-100 px-2 py-1 rounded font-semibold truncate">{ session.user.email }</p>
+                  <div className="flex items-center text-neutral-700 bg-neutral-100 px-2 py-1 rounded font-semibold truncate">
+                    <input className="w-40 bg-neutral-100 outline-none" value={username} onChange={(e) => handleUsernameInputChange(e)} />
+                    { showUsernameSave &&
+                      <button className="ml-auto h-5 w-5 rounded bg-neutral-800 text-white" onClick={handleUsernameSave}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                  <p className="text-neutral-700 bg-neutral-100 px-2 py-1 rounded font-semibold cursor-default truncate">{ session.user.email }</p>
                   <button className="text-red-500 px-2 py-1 text-start hover:text-red-600" onClick={handleSignOut}>Sign Out</button>
                 </div>
               </div>
