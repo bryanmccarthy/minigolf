@@ -195,7 +195,7 @@ export default function game() {
   }, []);
 
   return (
-    <div className="flex flex-col w-full h-[calc(100dvh)] bg-blue-400">
+    <div className="flex flex-col w-full h-[calc(100dvh)] bg-blue-400 overflow-hidden">
       <div className="flex py-4">
         <Link to={"/lobby"} className="flex items-center text-lg px-2 cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">

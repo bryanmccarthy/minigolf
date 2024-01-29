@@ -96,7 +96,7 @@ export default function Lobby() {
               </div>
               <div className="flex flex-col gap-2 py-2">
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
-                  <p className="text-white text-lg px-2 truncate">{ session && session.user ? session.user.user_metadata.username : "Guest" } (Me)</p>
+                  <p className="text-white text-lg px-2 truncate">{ session && session.user ? username : "Guest" } (Me)</p>
                 </div>
                 {/* TODO: Get party members */}
                 { data.map((party: any, idx: number) => (
