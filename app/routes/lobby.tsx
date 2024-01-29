@@ -1,16 +1,27 @@
-import { Link } from "@remix-run/react";
 import { useState } from "react";
-import { useOutletContext, useNavigate } from "@remix-run/react";
+import { Link, useOutletContext, useNavigate, json, useLoaderData } from "@remix-run/react";
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import { createSupabaseServerClient } from "../utils/supabase.server";
 import type { OutletContext } from "../utils/types";
 
 const courses = [
   "Practice",
   "Lazy Links",
   "Fairways"
-]
+];
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const response = new Response();
+  const supabase = createSupabaseServerClient({ request, response });
+
+  const { data } = await supabase.from("parties").select();
+
+  return json({ data });
+}
 
 export default function Lobby() {
   const navigate = useNavigate();
+  const { data } = useLoaderData<{ data: any }>();
   const { session, supabase } = useOutletContext<OutletContext>();
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
@@ -75,6 +86,12 @@ export default function Lobby() {
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
                   <p className="text-white text-lg px-2 truncate">{ session && session.user ? session.user.user_metadata.username : "Guest" } (Me)</p>
                 </div>
+                { data.map((party: any, idx: number) => (
+                    <div key={idx} className="flex items-center h-12 bg-white rounded shadow-lg">
+                      <p className="text-black text-lg px-2 truncate">{ party.leader }</p>
+                    </div>
+                  ))
+                }
               </div>
             </div>
             <div className="flex flex-col pt-2">
@@ -99,8 +116,8 @@ export default function Lobby() {
                       </svg>
                     </button>
                     <div className="flex flex-col gap-2 pb-2">
-                      { courses.filter((course: string) => course !== courseSelected).map((course: string) => (
-                          <button className="text-black text-lg text-start px-4 truncate hover:bg-gray-200 rounded-full mx-1" onClick={() => handleCourseSelected(course)}>{ course }</button>
+                      { courses.filter((course: string) => course !== courseSelected).map((course: string, idx: number) => (
+                          <button key={idx} className="text-black text-lg text-start px-4 truncate bg-neutral-100 hover:bg-neutral-200 rounded mx-1" onClick={() => handleCourseSelected(course)}>{ course }</button>
                         ))
                       }
                     </div>
