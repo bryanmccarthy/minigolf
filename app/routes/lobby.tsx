@@ -47,10 +47,22 @@ export default function Lobby() {
   return (
     <>
       <div className="flex flex-col bg-gradient-to-b from-blue-300 to-blue-200 h-[calc(100dvh)]">
-        <div className="flex">
-          <div className="flex flex-col gap-2 p-2">
+        <div className="relative flex">
+          {/* Invite Pane */}
+          { showInvitePane &&
+            <div className="absolute flex flex-col items-center w-44 h-32 top-2 left-48 rounded shadow-lg bg-white">
+              <button className="ml-auto p-2" onClick={handleToggleInvitePane}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <input placeholder="username" className="w-10/12 h-8 px-2 my-1 border-2 border-black rounded text-lg text-black outline-none" />
+              <button className="w-10/12 h-8 my-1 bg-black text-lg text-white rounded">Invite</button>
+            </div>
+          }
+          <div className="relative flex flex-col gap-2 p-2 w-48">
             <div className="flex flex-col">
-              <div className="flex items-end gap-2">
+              <div className="flex items-end gap-3">
                 <p className="text-2xl font-semibold text-black">Lobby (3/4)</p>
                 {/* TODO: add a condition to only render button if group is not full (4/4) or full group icon */}
                 <button onClick={handleToggleInvitePane}>
@@ -81,7 +93,7 @@ export default function Lobby() {
                 </Link>
                 { showCourseDropdown &&
                   <div className="absolute flex flex-col top-0 right-0 w-full rounded shadow-lg bg-white">
-                    <button className="text-black text-xl font-semibold ml-auto p-2" onClick={handleShowCourseDropdown}>
+                    <button className="ml-auto p-2" onClick={handleShowCourseDropdown}>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                       </svg>
