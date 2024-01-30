@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react";
-
-type Party = {
-  id: string;
-  members: string[];
-  course: string; // TODO: actually add course in supabase 
-  leader: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Party } from "../utils/types";
 
 export default function useParty(supabase: any, userId: string) {
   const [party, setParty] = useState<Party | null>(null);
