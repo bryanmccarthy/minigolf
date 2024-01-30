@@ -14,15 +14,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const response = new Response();
   const supabase = createSupabaseServerClient({ request, response });
 
-  const { data } = await supabase.from("parties").select();
+  const { data: {session} } = await supabase.auth.getSession();
+  const userId = session?.user.id;
+
+  const { data } = await supabase.from("parties").select().contains("members", [userId]);
+  console.log("data: ", data)
 
   return json({ data });
 }
 
 export default function Lobby() {
   const navigate = useNavigate();
-  const { data } = useLoaderData<{ data: any }>();
   const { session, supabase } = useOutletContext<OutletContext>();
+  const { data } = useLoaderData<{ data: any }>();
   const [username, setUsername] = useState(session.user.user_metadata.username);
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
@@ -96,12 +100,17 @@ export default function Lobby() {
               </div>
               <div className="flex flex-col gap-2 py-2">
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
-                  <p className="text-white text-lg px-2 truncate">{ session && session.user ? username : "Guest" } (Me)</p>
+                  <p className="w-40 text-white text-lg px-2 truncate">{ session && session.user ? username : "Guest" } (Me)</p>
+                  { data && data.length > 0 && data[0].leader === session.user.id && 
+                    <div className="ml-auto mx-2 w-4 h-4 bg-yellow-500 rounded"></div>
+                  }
                 </div>
-                {/* TODO: Get party members */}
-                { data.map((party: any, idx: number) => (
+                { data && data.length > 0 && data[0].members.filter((memberId: string) => memberId !== session.user.id).map((memberId: string, idx: number) => (
                     <div key={idx} className="flex items-center h-12 bg-white rounded shadow-lg">
-                      <p className="text-black text-lg px-2 truncate">{ party.leader }</p>
+                      <p className="w-40 text-black text-lg px-2 truncate">{ memberId }</p>
+                      { data[0].leader === memberId &&
+                        <div className="ml-auto mx-2 w-4 h-4 bg-yellow-500 rounded"></div>
+                      }
                     </div>
                   ))
                 }

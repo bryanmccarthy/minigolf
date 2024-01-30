@@ -4,8 +4,6 @@ import { useOutletContext } from "@remix-run/react";
 import type { OutletContext } from "../utils/types";
 import { useNavigate } from "@remix-run/react";
 
-// TODO: maybe use action to sign in for use of redirect?
-
 export default function SignInPage() {
   const { supabase } = useOutletContext<OutletContext>();
   const navigate = useNavigate();
