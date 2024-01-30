@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Link, useOutletContext, useNavigate, json, useLoaderData } from "@remix-run/react";
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { createSupabaseServerClient } from "../utils/supabase.server";
+import { Link, useOutletContext, useNavigate } from "@remix-run/react";
 import type { OutletContext } from "../utils/types";
+import useParty from "../hooks/useParty";
 
 const courses = [
   "Practice",
@@ -10,23 +9,10 @@ const courses = [
   "Fairways"
 ];
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const response = new Response();
-  const supabase = createSupabaseServerClient({ request, response });
-
-  const { data: {session} } = await supabase.auth.getSession();
-  const userId = session?.user.id;
-
-  const { data } = await supabase.from("parties").select().contains("members", [userId]);
-  console.log("data: ", data)
-
-  return json({ data });
-}
-
 export default function Lobby() {
   const navigate = useNavigate();
   const { session, supabase } = useOutletContext<OutletContext>();
-  const { data } = useLoaderData<{ data: any }>();
+  const party = useParty(supabase, session.user.id);
   const [username, setUsername] = useState(session.user.user_metadata.username);
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
@@ -91,7 +77,7 @@ export default function Lobby() {
             <div className="flex flex-col">
               <div className="flex items-end gap-1">
                 <p className="text-2xl font-semibold text-black">Lobby</p>
-                <p className="text-2xl font-semibold text-black">({ data && data.length > 0 && data[0].members.length }/4)</p>
+                <p className="text-2xl font-semibold text-black">({ party?.members.length }/4)</p>
                 {/* TODO: add a condition to only render button if group is not full (4/4) or full group icon */}
                 <button className="pl-3" onClick={handleToggleInvitePane}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
@@ -102,14 +88,14 @@ export default function Lobby() {
               <div className="flex flex-col gap-2 py-2">
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
                   <p className="w-40 text-white text-lg px-2 truncate">{ session && session.user ? username : "Guest" } (Me)</p>
-                  { data && data.length > 0 && data[0].leader === session.user.id && 
+                  { party?.leader === session.user.id && 
                     <div className="ml-auto mx-2 w-4 h-4 bg-yellow-500 rounded"></div>
                   }
                 </div>
-                { data && data.length > 0 && data[0].members.filter((memberId: string) => memberId !== session.user.id).map((memberId: string, idx: number) => (
+                { party?.members.filter((memberId) => memberId !== session.user.id).map((memberId: string, idx: number) => (
                     <div key={idx} className="flex items-center h-12 bg-white rounded shadow-lg">
                       <p className="w-40 text-black text-lg px-2 truncate">{ memberId }</p>
-                      { data[0].leader === memberId &&
+                      { party.leader === memberId &&
                         <div className="ml-auto mx-2 w-4 h-4 bg-yellow-500 rounded"></div>
                       }
                     </div>
