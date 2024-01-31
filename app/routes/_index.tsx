@@ -31,10 +31,12 @@ export default function Index() {
         <div className="w-20 h-20 p-8 m-1 bg-green-500 rounded mr-8 shadow-md">
         </div>
       </div>
-      <div className="flex flex-col gap-4 justify-center items-center pt-16">
-        <Link to={"/lobby"} className="flex justify-center items-center bg-slate-700 mx-4 w-56 h-10 text-white rounded-md shadow">Lobby</Link>
+      <div className="flex justify-center items-center pt-16">
         { session && session.user ?
-          <button className="flex justify-center items-center bg-slate-700 mx-4 w-56 h-10 text-white rounded-md shadow" onClick={handleSignOut}>Sign Out</button>
+          <div className="flex flex-col gap-4 justify-center items-center">
+            <Link to={"/lobby"} className="flex justify-center items-center bg-slate-700 mx-4 w-56 h-10 text-white rounded-md shadow">Lobby</Link>
+            <button className="flex justify-center items-center bg-slate-700 mx-4 w-56 h-10 text-white rounded-md shadow" onClick={handleSignOut}>Sign Out</button>
+          </div>
         :
           <Link to={"/signIn"} className="flex justify-center items-center bg-slate-700 mx-4 w-56 h-10 text-white rounded-md shadow">Sign In/up</Link>
         }
