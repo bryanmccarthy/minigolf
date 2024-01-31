@@ -5,10 +5,14 @@ export type OutletContext = {
   session: Session;
 };
 
+export type Profile = {
+  id: string;
+  display_name: string;
+  party_id: string;
+}
+
 export type Party = {
   id: string;
-  members: string[];
-  course: string; // TODO: actually add course in supabase 
   leader: string;
   createdAt: string;
   updatedAt: string;
