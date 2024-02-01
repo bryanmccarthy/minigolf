@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useOutletContext, useNavigate } from "@remix-run/react";
-import type { OutletContext, Profile } from "../utils/types";
+import type { OutletContext } from "../utils/types";
 import useProfile from "../hooks/useProfile";
 
 const courses = [
@@ -39,7 +39,11 @@ export default function Lobby() {
 
   const handleUsernameInputChange = (e: any) => {
     setUsernameEdit(e.target.value);
-    setShowUsernameSave(true);
+    if (e.target.value !== profile?.display_name) {
+      setShowUsernameSave(true);
+    } else {
+      setShowUsernameSave(false);
+    }
   }
 
   const handleUsernameSave = async () => {

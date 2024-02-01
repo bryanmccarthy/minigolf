@@ -9,11 +9,11 @@ export type Profile = {
   id: string;
   display_name: string;
   party_id: string;
-}
-
-export type Party = {
-  id: string;
-  leader: string;
-  createdAt: string;
-  updatedAt: string;
 };
+
+// export type Party = {
+//   id: string;
+//   leader: string;
+//   createdAt: string;
+//   updatedAt: string;
+// };
