@@ -70,6 +70,20 @@ export default function Lobby() {
     }
   }
 
+  const handleKickUserFromParty = async (id: string) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ party_id: null })
+      .eq("id", id);
+    
+    if (error) {
+      console.log("error: ", error); // TODO: handle error
+    } else {
+      console.log("kicked user from party");
+      setPartyMembers(partyMembers.filter((member: Profile) => member.id !== id));
+    }
+  }
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
 
@@ -86,7 +100,7 @@ export default function Lobby() {
       if (data) {
         setParty(data[0]);
       }
-    }  
+    }
 
     const fetchPartyMembers = async () => {
       const { data } = await supabase.from("profiles").select().eq("party_id", profile?.party_id);
@@ -100,6 +114,7 @@ export default function Lobby() {
       fetchParty();
       fetchPartyMembers();
     }
+
   }, [profile])
 
   return (
@@ -171,8 +186,12 @@ export default function Lobby() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                           </svg>
                         </button>
-                        <button className="w-10/12 h-8 my-1 bg-blue-500 hover:bg-blue-600 text-white rounded shadow">make leader</button>
-                        <button className="w-10/12 h-8 my-1 bg-red-500 hover:bg-red-600 text-white rounded shadow">kick</button>
+                        <button className="w-10/12 h-8 my-1 bg-blue-500 hover:bg-blue-600 text-white rounded shadow">
+                          make leader
+                        </button>
+                        <button className="w-10/12 h-8 my-1 bg-red-500 hover:bg-red-600 text-white rounded shadow" onClick={() => handleKickUserFromParty(member.id)}>
+                          kick
+                        </button>
                       </div>
                     }
                   </div>
