@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useOutletContext, useNavigate } from "@remix-run/react";
-import type { OutletContext } from "../utils/types";
+import type { OutletContext, Profile, Party } from "../utils/types";
 import useProfile from "../hooks/useProfile";
 
 const courses = [
@@ -13,6 +13,8 @@ export default function Lobby() {
   const navigate = useNavigate();
   const { session, supabase } = useOutletContext<OutletContext>();
   const profile = useProfile(supabase, session.user.id);
+  const [party, setParty] = useState<Party | null>(null);
+  const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -69,6 +71,28 @@ export default function Lobby() {
     }
   }
 
+  useEffect(() => {
+    const fetchParty = async () => {
+      const { data } = await supabase.from("parties").select().eq("id", profile?.party_id);
+      if (data) {
+        setParty(data[0]);
+      }
+    }  
+
+    const fetchPartyMembers = async () => {
+      const { data } = await supabase.from("profiles").select().eq("party_id", profile?.party_id);
+      if (data) {
+        const filteredData = data.filter((member: Profile) => member.id !== profile?.id);
+        setPartyMembers(filteredData);
+      }
+    }
+
+    if (profile) {
+      fetchParty();
+      fetchPartyMembers();
+    }
+  }, [profile])
+
   return (
     <>
       <div className="flex flex-col bg-gradient-to-b from-blue-300 to-blue-200 h-[calc(100dvh)]">
@@ -98,7 +122,14 @@ export default function Lobby() {
               <div className="flex flex-col gap-2 py-2">
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
                   <p className="w-40 text-white text-lg px-2 truncate">{ usernameEdit ? usernameEdit : profile?.display_name } (Me)</p>
+                  { party?.leader === profile?.id && <div className="w-4 h-4 mx-2 rounded bg-yellow-400"></div> }
                 </div>
+                { partyMembers.map((member: Profile, idx: number) => ( 
+                  <div key={idx} className="flex items-center h-12 bg-white rounded shadow-lg">
+                    <p className="w-40 text-black text-lg px-2 truncate">{ member.display_name }</p>
+                    { party?.leader === member.id && <div className="w-4 h-4 mx-2 rounded bg-yellow-400"></div> }
+                  </div>
+                ))}
               </div>
             </div>
             <div className="flex flex-col pt-2">
