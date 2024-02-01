@@ -21,6 +21,7 @@ export default function Lobby() {
   const [showInvitePane, setShowInvitePane] = useState(false);
   const [showUsernameSave, setShowUsernameSave] = useState(false);
   const [usernameEdit, setUsernameEdit] = useState("");
+  const [showPartyMemberEdit, setShowPartyMemberEdit] = useState(false);
 
   const handleToggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
@@ -28,6 +29,14 @@ export default function Lobby() {
 
   const handleToggleInvitePane = () => {
     setShowInvitePane(!showInvitePane);
+    // Make sure conflicting panes are closed
+    setShowPartyMemberEdit(false);
+  }
+
+  const handleTogglePartyMemberEdit = () => {
+    setShowPartyMemberEdit(!showPartyMemberEdit);
+    // Make sure conflicting panes are closed
+    setShowInvitePane(false);
   }
 
   const handleShowCourseDropdown = () => {
@@ -105,19 +114,27 @@ export default function Lobby() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
-              <input placeholder="username" className="w-10/12 h-8 px-2 my-1 border-2 border-black rounded text-lg text-black outline-none" />
-              <button className="w-10/12 h-8 my-1 bg-black text-lg text-white rounded">Invite</button>
+              <input placeholder="username" className="w-10/12 h-8 px-2 my-1 border-2 border-black rounded text-black outline-none" />
+              <button className="w-10/12 h-8 my-1 bg-black text-white rounded">Invite</button>
             </div>
           }
-          <div className="relative flex flex-col gap-2 p-2 w-48">
+          <div className="flex flex-col gap-2 p-2 w-48">
             <div className="flex flex-col">
               <div className="flex items-end gap-1">
                 <p className="text-2xl font-semibold text-black">Lobby</p>
-                <button className="pl-3" onClick={handleToggleInvitePane}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
-                    <path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />
-                  </svg>
-                </button>
+                { party?.leader === profile?.id ?
+                  <button className="pl-3" onClick={handleToggleInvitePane}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+                      <path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />
+                    </svg>
+                  </button>
+                :
+                  <div className="pl-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+                      <path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
+                    </svg>
+                  </div>
+                }
               </div>
               <div className="flex flex-col gap-2 py-2">
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
@@ -131,13 +148,31 @@ export default function Lobby() {
                   }
                 </div>
                 { partyMembers.map((member: Profile, idx: number) => ( 
-                  <div key={idx} className="flex items-center h-12 bg-white rounded shadow-lg">
+                  <div key={idx} className="relative flex items-center h-12 bg-white rounded shadow-lg">
                     <p className="w-40 text-black text-lg px-2 truncate">{ member.display_name }</p>
                     { party?.leader === member.id && 
                       <div className="p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
                         </svg>
+                      </div>
+                    }
+                    { party?.leader === profile?.id &&
+                      <div className="p-2 cursor-pointer transform hover:scale-110" onClick={handleTogglePartyMemberEdit}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                        </svg>
+                      </div>
+                    }
+                    { showPartyMemberEdit &&
+                      <div className="absolute flex flex-col justify-center items-center left-44 ml-2 top-0 w-40 h-32 rounded shadow-lg bg-white">
+                        <button className="ml-auto p-2" onClick={handleTogglePartyMemberEdit}>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                        <button className="w-10/12 h-8 my-1 bg-blue-500 hover:bg-blue-600 text-white rounded shadow">make leader</button>
+                        <button className="w-10/12 h-8 my-1 bg-red-500 hover:bg-red-600 text-white rounded shadow">kick</button>
                       </div>
                     }
                   </div>
