@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useOutletContext, useNavigate } from "@remix-run/react";
-import type { OutletContext, Profile, Party } from "../utils/types";
+import type { OutletContext, Profile, Party, Message } from "../utils/types";
 import useProfile from "../hooks/useProfile";
 
 const courses = [
@@ -15,6 +15,7 @@ export default function Lobby() {
   const profile = useProfile(supabase, session.user.id);
   const [party, setParty] = useState<Party | null>(null);
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
+  const [partyMessages, setPartyMessages] = useState<Message[]>([]);
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -22,6 +23,9 @@ export default function Lobby() {
   const [showUsernameSave, setShowUsernameSave] = useState(false);
   const [usernameEdit, setUsernameEdit] = useState("");
   const [showPartyMemberEdit, setShowPartyMemberEdit] = useState(false);
+  const [message, setMessage] = useState("");
+  const messagesDateRef = useRef<HTMLDivElement>(null);
+  const date = new Date();
 
   const handleToggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
@@ -70,6 +74,27 @@ export default function Lobby() {
     }
   }
 
+  const handleMessageChange = (e: any) => {
+    setMessage(e.target.value);
+  }
+
+  const handleSendMessage = async () => {
+    const { data, error } = await supabase
+      .from("messages")
+      .insert([
+        { party_id: profile?.party_id, sender_id: profile?.id, content: message }
+      ]);
+
+    if (error) {
+      console.log("error: ", error); // TODO: handle error
+    } else {
+      if (data) {
+        setPartyMessages([...partyMessages, data[0]]);
+      }
+      setMessage("");
+    }
+  }
+
   const handleKickUserFromParty = async (id: string) => {
     const { error } = await supabase
       .from("profiles")
@@ -96,23 +121,38 @@ export default function Lobby() {
 
   useEffect(() => {
     const fetchParty = async () => {
-      const { data } = await supabase.from("parties").select().eq("id", profile?.party_id);
+      const { data, error } = await supabase.from("parties").select().eq("id", profile?.party_id);
       if (data) {
         setParty(data[0]);
+      } else {
+        console.log("error: ", error); // TODO: handle error
       }
     }
 
     const fetchPartyMembers = async () => {
-      const { data } = await supabase.from("profiles").select().eq("party_id", profile?.party_id);
+      const { data, error } = await supabase.from("profiles").select().eq("party_id", profile?.party_id);
       if (data) {
         const filteredData = data.filter((member: Profile) => member.id !== profile?.id);
         setPartyMembers(filteredData);
+      } else {
+        console.log("error: ", error); // TODO: handle error
+      }
+    }
+
+    const fetchPartyMessages = async () => {
+      const { data, error } = await supabase.from('messages').select().eq('party_id', profile?.party_id);
+      if (data) {
+        setPartyMessages(data);
+        messagesDateRef.current?.scrollIntoView({ behavior: "instant" });
+      } else {
+        console.log("error: ", error); // TODO: handle error
       }
     }
 
     if (profile) {
       fetchParty();
       fetchPartyMembers();
+      fetchPartyMessages();
     }
 
   }, [profile])
@@ -209,7 +249,7 @@ export default function Lobby() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                   </svg>
                 </div>
-                <Link to={`/${courseSelected}`} className="flex items-center justify-center bg-orange-300 rounded h-12 shadow-lg">
+                <Link to={`/${courseSelected}`} className="flex items-center justify-center bg-orange-200 rounded h-12 shadow-lg">
                   <p className="text-black text-xl font-semibold">Start</p>
                 </Link>
                 { showCourseDropdown &&
@@ -231,9 +271,29 @@ export default function Lobby() {
             </div>
           </div>
           <div className="relative flex flex-col gap-2 p-2 ml-auto">
-            <div className="flex justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
+            <div className="flex ml-auto justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
               <p className="text-black text-2xl font-extrabold">{ profile?.display_name[0] }</p>
             </div>
+            <div className="flex flex-col overflow-y-scroll border-b bg-neutral-50 bg-opacity-20 rounded-t h-64 border-neutral-100 w-80">
+              { partyMessages.map((message: Message, idx: number) => (
+                 message.sender_id === profile?.id ?
+                  <div key={idx} className="ml-auto bg-orange-200 shadow-lg w-fit max-w-56 min-h-8 rounded-lg rounded-br-sm p-1 m-1">{ message.content }</div>
+                :
+                  <div key={idx} className="bg-neutral-100 shadow-lg w-fit max-w-56 min-h-8 rounded-lg rounded-bl-sm p-1 m-1 my-2">{ message.content }</div>
+                ))
+              }
+              <div ref={messagesDateRef} className="text-center text-xs font-thin text-neutral-500 drop-shadow m-1">
+                { date.toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }
+              </div>
+            </div>
+            <form className="flex gap-1 w-80">
+              <input className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
+              <button className="h-8 px-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-lg" onClick={handleSendMessage}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                </svg>
+              </button>
+            </form>
             { showUserMenu &&
               <div className="absolute flex flex-col top-0 right-0 w-56 m-2 rounded shadow-lg bg-white">
                 <button className="text-black text-xl font-semibold ml-auto p-2" onClick={handleToggleUserMenu}>

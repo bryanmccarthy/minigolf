@@ -14,6 +14,11 @@ export type Profile = {
 export type Party = {
   id: string;
   leader: string;
-  createdAt: string;
-  updatedAt: string;
 };
+
+export type Message = {
+  id: string;
+  party_id: string;
+  sender_id: string;
+  content: string;
+}
