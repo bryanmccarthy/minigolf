@@ -23,6 +23,7 @@ export default function Lobby() {
   const [showUsernameSave, setShowUsernameSave] = useState(false);
   const [usernameEdit, setUsernameEdit] = useState("");
   const [showPartyMemberEdit, setShowPartyMemberEdit] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [message, setMessage] = useState("");
   const messagesDateRef = useRef<HTMLDivElement>(null);
   const date = new Date();
@@ -37,10 +38,15 @@ export default function Lobby() {
     setShowPartyMemberEdit(false);
   }
 
-  const handleTogglePartyMemberEdit = () => {
-    setShowPartyMemberEdit(!showPartyMemberEdit);
+  const handleOpenPartyMemberEdit = (member: Profile) => {
+    setSelectedMember(member);
+    setShowPartyMemberEdit(true);
     // Make sure conflicting panes are closed
     setShowInvitePane(false);
+  }
+
+  const handleClosePartyMemberEdit = () => {
+    setShowPartyMemberEdit(false);
   }
 
   const handleShowCourseDropdown = () => {
@@ -92,6 +98,20 @@ export default function Lobby() {
         setPartyMessages([...partyMessages, data[0]]);
       }
       setMessage("");
+    }
+  }
+
+  const handleMakeSelectedMemberLeader = async () => {
+    const { data, error } = await supabase
+      .from("parties")
+      .update({ leader: selectedMember?.id })
+      .eq("id", profile?.party_id);
+
+    if (error) {
+      console.log("error: ", error); // TODO: handle error
+    } else {
+      console.log("made selected member leader");
+      // TODO: update party state
     }
   }
 
@@ -213,7 +233,7 @@ export default function Lobby() {
                       </div>
                     }
                     { party?.leader === profile?.id &&
-                      <div className="p-2 cursor-pointer transform hover:scale-110" onClick={handleTogglePartyMemberEdit}>
+                      <div className="p-2 cursor-pointer transform hover:scale-110" onClick={() => handleOpenPartyMemberEdit(member)}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                         </svg>
@@ -221,12 +241,12 @@ export default function Lobby() {
                     }
                     { showPartyMemberEdit &&
                       <div className="absolute flex flex-col justify-center items-center left-44 ml-2 top-0 w-40 h-32 rounded shadow-lg bg-white">
-                        <button className="ml-auto p-2" onClick={handleTogglePartyMemberEdit}>
+                        <button className="ml-auto p-2" onClick={handleClosePartyMemberEdit}>
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                           </svg>
                         </button>
-                        <button className="w-10/12 h-8 my-1 bg-blue-500 hover:bg-blue-600 text-white rounded shadow">
+                        <button className="w-10/12 h-8 my-1 bg-blue-500 hover:bg-blue-600 text-white rounded shadow" onClick={handleMakeSelectedMemberLeader}>
                           make leader
                         </button>
                         <button className="w-10/12 h-8 my-1 bg-red-500 hover:bg-red-600 text-white rounded shadow" onClick={() => handleKickUserFromParty(member.id)}>
