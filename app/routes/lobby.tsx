@@ -3,6 +3,7 @@ import { Link, useOutletContext, useNavigate } from "@remix-run/react";
 import type { OutletContext, Profile, Party, Message } from "../utils/types";
 import useProfile from "../hooks/useProfile";
 import InvitePane from "../components/InvitePane";
+import { RealtimePostgresInsertPayload } from "@supabase/supabase-js";
 
 const courses = [
   "Practice",
@@ -86,7 +87,9 @@ export default function Lobby() {
   }
 
   const handleSendMessage = async () => {
-    const { data, error } = await supabase
+    console.log("sending message: ", message);
+
+    const { error } = await supabase
       .from("messages")
       .insert([
         { party_id: profile?.party_id, sender_id: profile?.id, content: message }
@@ -95,9 +98,6 @@ export default function Lobby() {
     if (error) {
       console.log("error: ", error); // TODO: handle error
     } else {
-      if (data) {
-        setPartyMessages([...partyMessages, data[0]]);
-      }
       setMessage("");
     }
   }
@@ -112,6 +112,7 @@ export default function Lobby() {
       console.log("error: ", error); // TODO: handle error
     } else {
       console.log("made selected member leader");
+      console.log("data: ", data);
       // TODO: update party state
     }
   }
@@ -175,6 +176,46 @@ export default function Lobby() {
       fetchPartyMembers();
       fetchPartyMessages();
     }
+
+    const messageChannel = supabase.channel('messages');
+
+    messageChannel
+      .on(
+        'postgres_changes', 
+        { event: 'INSERT', 
+          schema: 'public', 
+          table: 'messages', 
+          filter: `party_id=eq.${profile?.party_id}` 
+        },
+        (
+          payload: RealtimePostgresInsertPayload<Message>
+        ) => {
+          setPartyMessages((prevMsgs: Message[]) => {
+            const messages = prevMsgs;
+            console.log("prevMsgs; ", prevMsgs);
+            const msg = (({ id, party_id, sender_id, content }: Message) => ({
+              id,
+              party_id,
+              sender_id,
+              content
+            }))(payload.new);
+            messages.push(msg);
+
+            console.log("messages: ", messages);
+
+            return messages; // TODO: why is this not updating state
+          })
+
+          if (messagesDateRef.current) {
+            messagesDateRef.current?.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      )
+      .subscribe()
+
+      return () => {
+        messageChannel && supabase.removeChannel(messageChannel)
+      }
 
   }, [profile])
 
@@ -301,14 +342,14 @@ export default function Lobby() {
                 { date.toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }
               </div>
             </div>
-            <form className="flex gap-1 w-80">
-              <input className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
+            <div className="flex gap-1 w-80">
+              <input value={message} className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
               <button className="h-8 px-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-lg" onClick={handleSendMessage}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
                 </svg>
               </button>
-            </form>
+            </div>
             { showUserMenu &&
               <div className="absolute flex flex-col top-0 right-0 w-56 m-2 rounded shadow-lg bg-white">
                 <button className="text-black text-xl font-semibold ml-auto p-2" onClick={handleToggleUserMenu}>
