@@ -330,7 +330,6 @@ export default function Lobby() {
             <div className="flex ml-auto justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
               <p className="text-black text-2xl font-extrabold">{ profile?.display_name[0] }</p>
             </div>
-            <div>Messages: {partyMessages.length}</div>
             <div className="flex flex-col overflow-y-scroll shadow-inner px-1 bg-neutral-50 bg-opacity-20 rounded-t h-64 border-neutral-100 w-80">
               { partyMessages.map((message: Message, idx: number) => (
                  message.sender_id === profile?.id ?
