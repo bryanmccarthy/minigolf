@@ -343,7 +343,7 @@ export default function Lobby() {
                   </div>
                 ))
               }
-              <div ref={messagesBoxRef} className="m-1 border-2 border-red"></div>
+              <div ref={messagesBoxRef}></div>
             </div>
             <div className="flex gap-1 w-80">
               <input value={message} className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
