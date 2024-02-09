@@ -164,7 +164,6 @@ export default function Lobby() {
       const { data, error } = await supabase.from('messages').select().eq('party_id', profile?.party_id);
       if (data) {
         setPartyMessages(data);
-        messagesBoxRef.current?.scrollIntoView({ behavior: "smooth" });
       } else {
         console.log("error: ", error); // TODO: handle error
       }
@@ -190,8 +189,7 @@ export default function Lobby() {
           payload: RealtimePostgresInsertPayload<Message>
         ) => {
           setPartyMessages((prevMsgs: Message[]) => {
-            const messages = prevMsgs;
-            console.log("prevMsgs; ", prevMsgs);
+            const messages = [...prevMsgs];
             const msg = (({ id, party_id, sender_id, content, created_at }: Message) => ({
               id,
               party_id,
@@ -199,16 +197,11 @@ export default function Lobby() {
               content,
               created_at
             }))(payload.new);
+
             messages.push(msg);
 
-            console.log("messages: ", messages);
-
-            return messages; // TODO: why is this not updating state
+            return messages;
           })
-
-          if (messagesBoxRef.current) {
-            messagesBoxRef.current?.scrollIntoView({ behavior: "smooth" });
-          }
         }
       )
       .subscribe()
@@ -217,7 +210,13 @@ export default function Lobby() {
         messageChannel && supabase.removeChannel(messageChannel)
       }
 
-  }, [profile])
+  }, [profile]);
+
+  useEffect(() => {
+    if (messagesBoxRef.current) {
+      messagesBoxRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [partyMessages]);
 
   return (
     <>
@@ -344,7 +343,7 @@ export default function Lobby() {
                   </div>
                 ))
               }
-              <div ref={messagesBoxRef} className="m-1"></div>
+              <div ref={messagesBoxRef} className="m-1 border-2 border-red"></div>
             </div>
             <div className="flex gap-1 w-80">
               <input value={message} className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
