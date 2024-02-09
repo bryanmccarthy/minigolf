@@ -3,6 +3,7 @@ import { Link, useOutletContext, useNavigate } from "@remix-run/react";
 import type { OutletContext, Profile, Party, Message } from "../utils/types";
 import useProfile from "../hooks/useProfile";
 import InvitePane from "../components/InvitePane";
+import PartyMessagesBox from "~/components/PartyMessagesBox";
 import { RealtimePostgresInsertPayload } from "@supabase/supabase-js";
 
 const courses = [
@@ -329,22 +330,7 @@ export default function Lobby() {
             <div className="flex ml-auto justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
               <p className="text-black text-2xl font-extrabold">{ profile?.display_name[0] }</p>
             </div>
-            <div className="flex flex-col overflow-y-scroll shadow-inner px-1 bg-neutral-50 bg-opacity-20 rounded-t h-64 border-neutral-100 w-80">
-              { partyMessages.map((message: Message, idx: number) => (
-                 message.sender_id === profile?.id ?
-                  <div key={idx} className="flex flex-col p-1 mx-1">
-                    <div className="ml-auto bg-orange-200 shadow w-fit min-w-6 max-w-56 min-h-8 rounded-lg rounded-br-sm p-1">{ message.content }</div>
-                    <div className="ml-auto text-xs font-thin text-neutral-600">{ new Date(message.created_at).toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }</div>
-                  </div>
-                :
-                  <div key={idx} className="flex flex-col p-1 mx-1">
-                    <div className="bg-neutral-100 shadow-lg w-fit min-w-6 max-w-56 min-h-8 rounded-lg rounded-bl-sm p-1">{ message.content }</div>
-                    <div className="text-xs font-thin text-neutral-600">{ new Date(message.created_at).toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }</div>
-                  </div>
-                ))
-              }
-              <div ref={messagesBoxRef}></div>
-            </div>
+            <PartyMessagesBox partyMessages={partyMessages} profile={profile} messagesBoxRef={messagesBoxRef} />
             <div className="flex gap-1 w-80">
               <input value={message} className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
               <button className="h-8 px-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-lg" onClick={handleSendMessage}>
