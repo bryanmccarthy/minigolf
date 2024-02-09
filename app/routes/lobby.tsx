@@ -27,8 +27,7 @@ export default function Lobby() {
   const [showPartyMemberEdit, setShowPartyMemberEdit] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [message, setMessage] = useState("");
-  const messagesDateRef = useRef<HTMLDivElement>(null);
-  const date = new Date();
+  const messagesBoxRef = useRef<HTMLDivElement>(null);
 
   const handleToggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
@@ -165,7 +164,7 @@ export default function Lobby() {
       const { data, error } = await supabase.from('messages').select().eq('party_id', profile?.party_id);
       if (data) {
         setPartyMessages(data);
-        messagesDateRef.current?.scrollIntoView({ behavior: "instant" });
+        messagesBoxRef.current?.scrollIntoView({ behavior: "smooth" });
       } else {
         console.log("error: ", error); // TODO: handle error
       }
@@ -193,11 +192,12 @@ export default function Lobby() {
           setPartyMessages((prevMsgs: Message[]) => {
             const messages = prevMsgs;
             console.log("prevMsgs; ", prevMsgs);
-            const msg = (({ id, party_id, sender_id, content }: Message) => ({
+            const msg = (({ id, party_id, sender_id, content, created_at }: Message) => ({
               id,
               party_id,
               sender_id,
-              content
+              content,
+              created_at
             }))(payload.new);
             messages.push(msg);
 
@@ -206,8 +206,8 @@ export default function Lobby() {
             return messages; // TODO: why is this not updating state
           })
 
-          if (messagesDateRef.current) {
-            messagesDateRef.current?.scrollIntoView({ behavior: "smooth" });
+          if (messagesBoxRef.current) {
+            messagesBoxRef.current?.scrollIntoView({ behavior: "smooth" });
           }
         }
       )
@@ -330,17 +330,22 @@ export default function Lobby() {
             <div className="flex ml-auto justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
               <p className="text-black text-2xl font-extrabold">{ profile?.display_name[0] }</p>
             </div>
-            <div className="flex flex-col overflow-y-scroll border-b bg-neutral-50 bg-opacity-20 rounded-t h-64 border-neutral-100 w-80">
+            <div>Messages: {partyMessages.length}</div>
+            <div className="flex flex-col overflow-y-scroll shadow-inner px-1 bg-neutral-50 bg-opacity-20 rounded-t h-64 border-neutral-100 w-80">
               { partyMessages.map((message: Message, idx: number) => (
                  message.sender_id === profile?.id ?
-                  <div key={idx} className="ml-auto bg-orange-200 shadow-lg w-fit max-w-56 min-h-8 rounded-lg rounded-br-sm p-1 m-1">{ message.content }</div>
+                  <div key={idx} className="flex flex-col p-1 mx-1">
+                    <div className="ml-auto bg-orange-200 shadow w-fit min-w-6 max-w-56 min-h-8 rounded-lg rounded-br-sm p-1">{ message.content }</div>
+                    <div className="ml-auto text-xs font-thin text-neutral-600">{ new Date(message.created_at).toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }</div>
+                  </div>
                 :
-                  <div key={idx} className="bg-neutral-100 shadow-lg w-fit max-w-56 min-h-8 rounded-lg rounded-bl-sm p-1 m-1 my-2">{ message.content }</div>
+                  <div key={idx} className="flex flex-col p-1 mx-1">
+                    <div className="bg-neutral-100 shadow-lg w-fit min-w-6 max-w-56 min-h-8 rounded-lg rounded-bl-sm p-1">{ message.content }</div>
+                    <div className="text-xs font-thin text-neutral-600">{ new Date(message.created_at).toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }</div>
+                  </div>
                 ))
               }
-              <div ref={messagesDateRef} className="text-center text-xs font-thin text-neutral-500 drop-shadow m-1">
-                { date.toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }
-              </div>
+              <div ref={messagesBoxRef} className="m-1"></div>
             </div>
             <div className="flex gap-1 w-80">
               <input value={message} className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
