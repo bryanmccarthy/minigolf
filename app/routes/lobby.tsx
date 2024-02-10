@@ -135,28 +135,48 @@ export default function Lobby() {
     }
   }
 
+  const removeLeaderFromParty = async () => {
+    // Assign a new leader if the leader is leaving
+    if (partyMembers.length < 1) {
+      // Delete the party if the leader is the only member
+      const { error } = await supabase.from("parties").delete().eq("id", profile?.party_id);
+
+      if (error) {
+        console.log("error: ", error); // TODO: handle error
+      }
+    } else {
+      const newLeader = partyMembers.find((member: Profile) => member.id !== profile?.id);
+      console.log("newLeader: ", newLeader);
+      const { data, error } = await supabase.from("parties").update({ leader: newLeader?.id }).eq("id", profile?.party_id).select();
+
+      if (error) {
+        console.log("error: ", error); // TODO: handle error
+      } else {
+        console.log("party updated: ", data);
+      }
+    }
+  }
+
+  const handleLeaveParty = async () => {
+
+    if (party?.leader === profile?.id) {
+      removeLeaderFromParty();
+    }
+
+    const { error } = await supabase.from("profiles").update({ party_id: null }).eq("id", profile?.id).select();
+
+    if (error) {
+      console.log("error: ", error); // TODO: handle error
+    } else {
+      console.log("left party");
+    }
+  }
+
   const handleAcceptInvite = async (invite: Invite) => {
 
-    // Assign a new leader if the leader is leaving
+    // Leave current party
     if (party?.leader === profile?.id) {
-      if (partyMembers.length < 1) {
-        // Delete the party if the leader is the only member
-        const { error } = await supabase.from("parties").delete().eq("id", profile?.party_id);
-
-        if (error) {
-          console.log("error: ", error); // TODO: handle error
-        }
-      } else {
-        const newLeader = partyMembers.find((member: Profile) => member.id !== profile?.id);
-        console.log("newLeader: ", newLeader);
-        const { data, error } = await supabase.from("parties").update({ leader: newLeader?.id }).eq("id", profile?.party_id).select();
-
-        if (error) {
-          console.log("error: ", error); // TODO: handle error
-        } else {
-          console.log("party updated: ", data);
-        }
-      }
+      removeLeaderFromParty();
     }
 
     const { error } = await supabase.from("profiles").update({ party_id: invite.party_id }).eq("id", profile?.id).select();
@@ -354,15 +374,22 @@ export default function Lobby() {
               <div className="flex items-end gap-1">
                 <p className="text-2xl font-semibold text-black">Lobby</p>
                 { party?.leader === profile.id ?
-                  <button className="pl-3" onClick={handleToggleInvitePane}>
+                  <button className="ml-auto" onClick={handleToggleInvitePane}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
                       <path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />
                     </svg>
                   </button>
                 :
-                  <div className="pl-3">
+                  <div className="ml-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
                       <path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
+                    </svg>
+                  </div>
+                }
+                { partyMembers.length > 0 &&
+                  <div className="text-red-600 cursor-pointer" onClick={handleLeaveParty}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                     </svg>
                   </div>
                 }
