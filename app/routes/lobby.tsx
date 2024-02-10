@@ -179,46 +179,68 @@ export default function Lobby() {
       }
     }
 
-    if (profile) {
+    const createParty = async () => {
+      const { data, error } = await supabase.from("parties").insert([{ leader: profile?.id }]).select();
+
+      if (error) {
+        console.log("error: ", error); // TODO: handle error
+      } else {
+        // Join the created party
+        const partyId = data[0].id;
+        const { error } = await supabase.from("profiles").update({ party_id: partyId }).eq("id", profile?.id).select();
+
+        if (error) {
+          console.log("error joining party: ", error); // TODO: handle error
+        }
+      }
+    }
+
+    if (profile && profile.party_id !== null) {
       fetchParty();
       fetchPartyMembers();
       fetchPartyMessages();
     }
 
+    if (profile && profile.party_id === null) {
+      createParty();
+    }
+
     const messageChannel = supabase.channel('messages');
 
-    messageChannel
-      .on(
-        'postgres_changes', 
-        { event: 'INSERT', 
-          schema: 'public', 
-          table: 'messages', 
-          filter: `party_id=eq.${profile?.party_id}` 
-        },
-        (
-          payload: RealtimePostgresInsertPayload<Message>
-        ) => {
-          setPartyMessages((prevMsgs: Message[]) => {
-            const messages = [...prevMsgs];
-            const msg = (({ id, party_id, sender_id, content, created_at }: Message) => ({
-              id,
-              party_id,
-              sender_id,
-              content,
-              created_at
-            }))(payload.new);
+    if (profile?.party_id !== null) {
+      messageChannel
+        .on(
+          'postgres_changes', 
+          { event: 'INSERT', 
+            schema: 'public', 
+            table: 'messages', 
+            filter: `party_id=eq.${profile?.party_id}` 
+          },
+          (
+            payload: RealtimePostgresInsertPayload<Message>
+          ) => {
+            setPartyMessages((prevMsgs: Message[]) => {
+              const messages = [...prevMsgs];
+              const msg = (({ id, party_id, sender_id, content, created_at }: Message) => ({
+                id,
+                party_id,
+                sender_id,
+                content,
+                created_at
+              }))(payload.new);
 
-            messages.push(msg);
+              messages.push(msg);
 
-            return messages;
-          })
-        }
-      )
-      .subscribe()
+              return messages;
+            })
+          }
+        )
+        .subscribe();
+    }
 
-      return () => {
-        messageChannel && supabase.removeChannel(messageChannel)
-      }
+    return () => {
+      messageChannel && supabase.removeChannel(messageChannel)
+    }
 
   }, [profile]);
 
@@ -338,15 +360,19 @@ export default function Lobby() {
             <div className="flex ml-auto justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
               <p className="text-black text-2xl font-extrabold">{ profile.display_name[0] }</p>
             </div>
-            <PartyMessagesBox partyMessages={partyMessages} profile={profile} messagesBoxRef={messagesBoxRef} />
-            <div className="flex gap-1 w-80">
-              <input value={message} className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
-              <button className="h-8 px-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-lg" onClick={handleSendMessage}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                </svg>
-              </button>
-            </div>
+            { party &&
+              <>
+                <PartyMessagesBox partyMessages={partyMessages} profile={profile} messagesBoxRef={messagesBoxRef} />
+                <div className="flex gap-1 w-80">
+                  <input value={message} className="w-full h-8 bg-white rounded shadow-lg outline-none px-1" placeholder="message..." onChange={(e) => handleMessageChange(e)} />
+                  <button className="h-8 px-2 bg-blue-500 hover:bg-blue-600 text-white rounded shadow-lg" onClick={handleSendMessage}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                    </svg>
+                  </button>
+                </div>
+              </>
+            }
             { showUserMenu &&
               <div className="absolute flex flex-col top-0 right-0 w-56 m-2 rounded shadow-lg bg-white">
                 <button className="text-black text-xl font-semibold ml-auto p-2" onClick={handleToggleUserMenu}>
