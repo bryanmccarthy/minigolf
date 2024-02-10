@@ -88,12 +88,12 @@ export default function Lobby() {
   }
 
   const handleSendMessage = async () => {
-    console.log("sending message: ", message);
+    if (!profile) return;
 
     const { error } = await supabase
       .from("messages")
       .insert([
-        { party_id: profile?.party_id, sender_id: profile?.id, content: message }
+        { party_id: profile.party_id, sender_id: profile.id, content: message }
       ]);
 
     if (error) {
@@ -104,10 +104,12 @@ export default function Lobby() {
   }
 
   const handleMakeSelectedMemberLeader = async () => {
+    if (!profile) return;
+
     const { data, error } = await supabase
       .from("parties")
       .update({ leader: selectedMember?.id })
-      .eq("id", profile?.party_id);
+      .eq("id", profile.party_id);
 
     if (error) {
       console.log("error: ", error); // TODO: handle error
@@ -144,7 +146,9 @@ export default function Lobby() {
 
   useEffect(() => {
     const fetchParty = async () => {
-      const { data, error } = await supabase.from("parties").select().eq("id", profile?.party_id);
+      if (!profile) return;
+
+      const { data, error } = await supabase.from("parties").select().eq("id", profile.party_id);
       if (data) {
         setParty(data[0]);
       } else {
@@ -153,9 +157,11 @@ export default function Lobby() {
     }
 
     const fetchPartyMembers = async () => {
-      const { data, error } = await supabase.from("profiles").select().eq("party_id", profile?.party_id);
+      if (!profile) return;
+
+      const { data, error } = await supabase.from("profiles").select().eq("party_id", profile.party_id);
       if (data) {
-        const filteredData = data.filter((member: Profile) => member.id !== profile?.id);
+        const filteredData = data.filter((member: Profile) => member.id !== profile.id);
         setPartyMembers(filteredData);
       } else {
         console.log("error: ", error); // TODO: handle error
@@ -163,7 +169,9 @@ export default function Lobby() {
     }
 
     const fetchPartyMessages = async () => {
-      const { data, error } = await supabase.from('messages').select().eq('party_id', profile?.party_id);
+      if (!profile) return;
+
+      const { data, error } = await supabase.from('messages').select().eq('party_id', profile.party_id);
       if (data) {
         setPartyMessages(data);
       } else {
@@ -231,7 +239,7 @@ export default function Lobby() {
           {/* Invite Pane */}
           { showInvitePane &&
             <InvitePane
-              displayName={profile?.display_name}
+              displayName={profile.display_name}
               supabase={supabase}
               close={handleToggleInvitePane}
             />
@@ -240,7 +248,7 @@ export default function Lobby() {
             <div className="flex flex-col">
               <div className="flex items-end gap-1">
                 <p className="text-2xl font-semibold text-black">Lobby</p>
-                { party?.leader === profile?.id ?
+                { party?.leader === profile.id ?
                   <button className="pl-3" onClick={handleToggleInvitePane}>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
                       <path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />
@@ -256,8 +264,8 @@ export default function Lobby() {
               </div>
               <div className="flex flex-col gap-2 py-2">
                 <div className="flex items-center h-12 bg-slate-700 rounded shadow-lg">
-                  <p className="w-40 text-white text-lg px-2 truncate">{ usernameEdit ? usernameEdit : profile?.display_name } (Me)</p>
-                  { party?.leader === profile?.id &&
+                  <p className="w-40 text-white text-lg px-2 truncate">{ usernameEdit ? usernameEdit : profile.display_name } (Me)</p>
+                  { party?.leader === profile.id &&
                     <div className="p-2 text-white">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
@@ -275,7 +283,7 @@ export default function Lobby() {
                         </svg>
                       </div>
                     }
-                    { party?.leader === profile?.id &&
+                    { party?.leader === profile.id &&
                       <div className="p-2 cursor-pointer transform hover:scale-110" onClick={() => handleOpenPartyMemberEdit(member)}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
@@ -328,7 +336,7 @@ export default function Lobby() {
           </div>
           <div className="relative flex flex-col gap-2 p-2 ml-auto">
             <div className="flex ml-auto justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
-              <p className="text-black text-2xl font-extrabold">{ profile?.display_name[0] }</p>
+              <p className="text-black text-2xl font-extrabold">{ profile.display_name[0] }</p>
             </div>
             <PartyMessagesBox partyMessages={partyMessages} profile={profile} messagesBoxRef={messagesBoxRef} />
             <div className="flex gap-1 w-80">
@@ -348,7 +356,7 @@ export default function Lobby() {
                 </button>
                 <div className="flex flex-col gap-3 p-3 mt-auto">
                   <div className="flex items-center text-neutral-700 bg-neutral-100 px-2 py-1 rounded font-semibold truncate">
-                    <input className="w-40 bg-neutral-100 outline-none" value={usernameEdit ? usernameEdit : profile?.display_name} onChange={(e) => handleUsernameInputChange(e)} />
+                    <input className="w-40 bg-neutral-100 outline-none" value={usernameEdit ? usernameEdit : profile.display_name} onChange={(e) => handleUsernameInputChange(e)} />
                     { showUsernameSave &&
                       <button className="ml-auto h-5 w-5 rounded bg-neutral-800 text-white" onClick={handleUsernameSave}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
