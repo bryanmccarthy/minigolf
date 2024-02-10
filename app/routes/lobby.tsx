@@ -220,6 +220,10 @@ export default function Lobby() {
     }
   }, [partyMessages]);
 
+  if (!profile) {
+    return null; // TODO: handle loading state
+  }
+
   return (
     <>
       <div className="flex flex-col bg-gradient-to-b from-blue-300 to-blue-200 h-[calc(100dvh)]">
@@ -227,6 +231,8 @@ export default function Lobby() {
           {/* Invite Pane */}
           { showInvitePane &&
             <InvitePane
+              displayName={profile?.display_name}
+              supabase={supabase}
               close={handleToggleInvitePane}
             />
           }
