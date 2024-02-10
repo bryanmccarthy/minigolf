@@ -136,6 +136,29 @@ export default function Lobby() {
   }
 
   const handleAcceptInvite = async (invite: Invite) => {
+
+    // Assign a new leader if the leader is leaving
+    if (party?.leader === profile?.id) {
+      if (partyMembers.length < 1) {
+        // Delete the party if the leader is the only member
+        const { error } = await supabase.from("parties").delete().eq("id", profile?.party_id);
+
+        if (error) {
+          console.log("error: ", error); // TODO: handle error
+        }
+      } else {
+        const newLeader = partyMembers.find((member: Profile) => member.id !== profile?.id);
+        console.log("newLeader: ", newLeader);
+        const { data, error } = await supabase.from("parties").update({ leader: newLeader?.id }).eq("id", profile?.party_id).select();
+
+        if (error) {
+          console.log("error: ", error); // TODO: handle error
+        } else {
+          console.log("party updated: ", data);
+        }
+      }
+    }
+
     const { error } = await supabase.from("profiles").update({ party_id: invite.party_id }).eq("id", profile?.id).select();
 
     if (error) {
@@ -146,7 +169,7 @@ export default function Lobby() {
       if (error) {
         console.log("error: ", error); // TODO: handle error
       } else {
-        window.location.reload(); // TODO: find a better way to refresh the page
+        // TODO: update state
       }
     }
   }
