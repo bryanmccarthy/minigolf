@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useOutletContext, useNavigate } from "@remix-run/react";
-import type { OutletContext, Profile, Party, Message } from "../utils/types";
+import type { OutletContext, Profile, Party, Message, Invite } from "../utils/types";
 import useProfile from "../hooks/useProfile";
 import InvitePane from "../components/InvitePane";
 import PartyMessagesBox from "../components/PartyMessagesBox";
@@ -29,6 +29,7 @@ export default function Lobby() {
   const [showPartyMemberEdit, setShowPartyMemberEdit] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [message, setMessage] = useState("");
+  const [invites, setInvites] = useState<Invite[]>([]);
   const messagesBoxRef = useRef<HTMLDivElement>(null);
 
   const handleToggleUserMenu = () => {
@@ -134,6 +135,33 @@ export default function Lobby() {
     }
   }
 
+  const handleAcceptInvite = async (invite: Invite) => {
+    const { error } = await supabase.from("profiles").update({ party_id: invite.party_id }).eq("id", profile?.id).select();
+
+    if (error) {
+      console.log("error: ", error); // TODO: handle error
+    } else {
+      const { error } = await supabase.from("invites").delete().eq("id", invite.id);
+
+      if (error) {
+        console.log("error: ", error); // TODO: handle error
+      } else {
+        window.location.reload(); // TODO: find a better way to refresh the page
+      }
+    }
+  }
+
+  const handleDeclineInvite = async (invite: Invite) => {
+    const { error } = await supabase.from("invites").delete().eq("id", invite.id);
+
+    if (error) {
+      console.log("error: ", error); // TODO: handle error
+    } else {
+      console.log("invite declined");
+      setInvites(invites.filter((inv: Invite) => inv.id !== invite.id));
+    }
+  }
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
 
@@ -191,18 +219,33 @@ export default function Lobby() {
 
         if (error) {
           console.log("error joining party: ", error); // TODO: handle error
+        } else {
+          window.location.reload(); // TODO: find a better way to refresh the page
         }
       }
     }
 
-    if (profile && profile.party_id !== null) {
-      fetchParty();
-      fetchPartyMembers();
-      fetchPartyMessages();
+    const fetchInvites = async () => {
+      const { data, error } = await supabase.from("invites").select().eq("receiver_display_name", profile?.display_name);
+
+      if (error) {
+        console.log("error: ", error); // TODO: handle error
+      } else {
+        console.log("invites: ", data);
+        setInvites(data);
+      }
     }
 
-    if (profile && profile.party_id === null) {
-      createParty();
+    if (profile) {
+      if (profile.party_id === null) {
+        createParty();
+      } else {
+        fetchParty();
+        fetchPartyMembers();
+        fetchPartyMessages();
+      }
+
+      fetchInvites();
     }
 
     const messageChannel = supabase.channel('messages');
@@ -262,12 +305,29 @@ export default function Lobby() {
           { showInvitePane &&
             <InvitePane
               displayName={profile.display_name}
+              partyId={profile.party_id}
+              partyMembers={partyMembers}
               supabase={supabase}
               close={handleToggleInvitePane}
             />
           }
           <div className="flex flex-col gap-2 p-2 w-48">
             <div className="flex flex-col">
+              {/* TODO: Move invites to a new section with a notif icon and invites length */}
+              { invites.map((invite: Invite, idx: number) => (
+                  <div key={idx} className="flex flex-col gap-2 p-2 bg-white rounded shadow-lg">
+                    <p className="text-black text-lg font-semibold">{ invite.sender_display_name }</p>
+                    <div className="flex gap-2">
+                      <button className="w-20 h-8 bg-green-500 hover:bg-green-600 text-white rounded shadow-lg" onClick={() => handleAcceptInvite(invite)}>
+                        accept
+                      </button>
+                      <button className="w-20 h-8 bg-red-500 hover:bg-red-600 text-white rounded shadow-lg" onClick={() => handleDeclineInvite(invite)}>
+                        decline
+                      </button>
+                    </div>
+                  </div>
+                ))
+              }
               <div className="flex items-end gap-1">
                 <p className="text-2xl font-semibold text-black">Lobby</p>
                 { party?.leader === profile.id ?

@@ -1,20 +1,28 @@
 import { useState } from "react";
+import type { Profile } from "../utils/types";
 
 type InvitePanePropsTypes = {
   displayName: string;
+  partyId: string;
+  partyMembers: Profile[];
   supabase: any;
   close: () => void;
 }
 
-export default function InvitePane({ displayName, supabase, close }: InvitePanePropsTypes) {
+export default function InvitePane({ displayName, partyId, partyMembers, supabase, close }: InvitePanePropsTypes) {
   
   const [username, setUsername] = useState('');
 
   const handleInviteUser = async () => {
     console.log("Inviting user: ", username);
+    if (partyMembers.some((member) => member.display_name === username)) {
+      console.log("User already in party");
+      setUsername('');
+      return;
+    }
 
     const { error } = await supabase.from('invites').insert([
-      { sender_display_name: displayName, receiver_display_name: username }
+      { sender_display_name: displayName, receiver_display_name: username, party_id: partyId }
     ]);
 
     if (error) {

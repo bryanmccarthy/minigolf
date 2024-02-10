@@ -23,3 +23,10 @@ export type Message = {
   content: string;
   created_at: string;
 }
+
+export type Invite = {
+  id: string;
+  sender_display_name: string;
+  receiver_display_name: string;
+  party_id: string;
+}
