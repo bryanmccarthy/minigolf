@@ -119,6 +119,7 @@ export default function Lobby() {
       console.log("made selected member leader");
       console.log("data: ", data);
       // TODO: update party state
+      // setSelectedMember(null);
     }
   }
 
@@ -410,7 +411,7 @@ export default function Lobby() {
                         </svg>
                       </div>
                     }
-                    { showPartyMemberEdit &&
+                    { showPartyMemberEdit && selectedMember && selectedMember.id === member.id &&
                       <PartyMemberEditPane
                         handleClosePartyMemberEdit={handleClosePartyMemberEdit}
                         handleMakeSelectedMemberLeader={handleMakeSelectedMemberLeader}
