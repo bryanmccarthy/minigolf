@@ -23,7 +23,7 @@ export default function Lobby() {
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showNotifcations, setShowNotifications] = useState(true);
+  const [showNotifcations, setShowNotifications] = useState(false);
   const [showInvitePane, setShowInvitePane] = useState(false);
   const [showUsernameSave, setShowUsernameSave] = useState(false);
   const [usernameEdit, setUsernameEdit] = useState("");
@@ -190,7 +190,9 @@ export default function Lobby() {
       if (error) {
         console.log("error: ", error); // TODO: handle error
       } else {
-        // TODO: update state
+        console.log("invite accepted");
+        setInvites(invites.filter((inv: Invite) => inv.id !== invite.id));
+        setShowNotifications(false);
       }
     }
   }
