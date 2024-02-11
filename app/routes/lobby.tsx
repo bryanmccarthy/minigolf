@@ -23,6 +23,7 @@ export default function Lobby() {
   const [courseSelected, setCourseSelected] = useState('Practice');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifcations, setShowNotifications] = useState(true);
   const [showInvitePane, setShowInvitePane] = useState(false);
   const [showUsernameSave, setShowUsernameSave] = useState(false);
   const [usernameEdit, setUsernameEdit] = useState("");
@@ -356,21 +357,6 @@ export default function Lobby() {
           }
           <div className="flex flex-col gap-2 p-2 w-48">
             <div className="flex flex-col">
-              {/* TODO: Move invites to a new section with a notif icon and invites length */}
-              { invites.map((invite: Invite, idx: number) => (
-                  <div key={idx} className="flex flex-col gap-2 p-2 bg-white rounded shadow-lg">
-                    <p className="text-black text-lg font-semibold">{ invite.sender_display_name }</p>
-                    <div className="flex gap-2">
-                      <button className="w-20 h-8 bg-green-500 hover:bg-green-600 text-white rounded shadow-lg" onClick={() => handleAcceptInvite(invite)}>
-                        accept
-                      </button>
-                      <button className="w-20 h-8 bg-red-500 hover:bg-red-600 text-white rounded shadow-lg" onClick={() => handleDeclineInvite(invite)}>
-                        decline
-                      </button>
-                    </div>
-                  </div>
-                ))
-              }
               <div className="flex items-end gap-1">
                 <p className="text-2xl font-semibold text-black">Lobby</p>
                 { party?.leader === profile.id ?
@@ -467,8 +453,15 @@ export default function Lobby() {
             </div>
           </div>
           <div className="relative flex flex-col gap-2 p-2 ml-auto">
-            <div className="flex ml-auto justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
-              <p className="text-black text-2xl font-extrabold">{ profile.display_name[0] }</p>
+            <div className="flex items-center ml-auto gap-2">
+              <div className="cursor-pointer" onClick={() => setShowNotifications(true)}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+                  <path fillRule="evenodd" d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
+                <p className="text-black text-2xl font-extrabold">{ profile.display_name[0] }</p>
+              </div>
             </div>
             { party &&
               <>
@@ -504,6 +497,40 @@ export default function Lobby() {
                   <p className="text-neutral-700 bg-neutral-100 px-2 py-1 rounded font-semibold cursor-default truncate">{ session.user.email }</p>
                   <button className="text-red-500 px-2 py-1 text-start hover:text-red-600" onClick={handleSignOut}>Sign Out</button>
                 </div>
+              </div>
+            }
+            { showNotifcations &&
+              <div className="absolute flex flex-col top-0 right-0 w-56 max-h-96 m-2 rounded shadow-lg bg-white">
+                <div className="flex justify-between items-center">
+                  <p className="text-lg font-light text-black p-2">Notifications</p>
+                  <button className="text-black text-xl font-semibold p-2" onClick={() => setShowNotifications(false)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                { invites.length > 0 ?
+                    <div className="flex flex-col h-full">
+                      { invites.map((invite: Invite, idx: number) => (
+                          <div key={idx} className="flex justify-between items-center p-2">
+                            <p className="text-black font-light text-lg">{ invite.sender_display_name }</p>
+                            <div className="flex gap-2 px-2">
+                              <button className="text-green-600 hover:text-green-500" onClick={() => handleAcceptInvite(invite)}>
+                                accept
+                              </button>
+                              <button className="text-red-600 hover:text-red-500" onClick={() => handleDeclineInvite(invite)}>
+                                decline
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  :
+                    <div className="h-full">
+                      <p className="grid place-items-center h-20 text-xl font-semibold text-neutral-500">No notifications</p>
+                    </div>
+                }
               </div>
             }
           </div>
