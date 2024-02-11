@@ -454,10 +454,15 @@ export default function Lobby() {
           </div>
           <div className="relative flex flex-col gap-2 p-2 ml-auto">
             <div className="flex items-center ml-auto gap-2">
-              <div className="cursor-pointer" onClick={() => setShowNotifications(true)}>
+              <div className="relative cursor-pointer" onClick={() => setShowNotifications(true)}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
                   <path fillRule="evenodd" d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" clipRule="evenodd" />
                 </svg>
+                { invites.length > 0 &&
+                  <div className="absolute flex justify-center items-center -top-2 -right-1 w-5 h-5 bg-red-500 text-white rounded-full">
+                    <p className="text-xs font-semibold">{ invites.length > 9 ? '9+' : invites.length }</p>
+                  </div>
+                }
               </div>
               <div className="flex justify-center items-center w-12 h-12 bg-white rounded shadow-lg cursor-pointer hover:bg-neutral-100" onClick={handleToggleUserMenu}>
                 <p className="text-black text-2xl font-extrabold">{ profile.display_name[0] }</p>
