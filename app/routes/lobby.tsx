@@ -25,6 +25,7 @@ export default function Lobby() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifcations, setShowNotifications] = useState(false);
   const [showInvitePane, setShowInvitePane] = useState(false);
+  const [showConfirmLeaveParty, setShowConfirmLeaveParty] = useState(false);
   const [showUsernameSave, setShowUsernameSave] = useState(false);
   const [usernameEdit, setUsernameEdit] = useState("");
   const [showPartyMemberEdit, setShowPartyMemberEdit] = useState(false);
@@ -41,6 +42,14 @@ export default function Lobby() {
     setShowInvitePane(!showInvitePane);
     // Make sure conflicting panes are closed
     setShowPartyMemberEdit(false);
+    setShowConfirmLeaveParty(false);
+  }
+
+  const handleToggleLeavePartyPane = () => {
+    setShowConfirmLeaveParty(!showConfirmLeaveParty);
+    // Make sure conflicting panes are closed
+    setShowPartyMemberEdit(false);
+    setShowInvitePane(false);
   }
 
   const handleOpenPartyMemberEdit = (member: Profile) => {
@@ -48,6 +57,7 @@ export default function Lobby() {
     setShowPartyMemberEdit(true);
     // Make sure conflicting panes are closed
     setShowInvitePane(false);
+    setShowConfirmLeaveParty(false);
   }
 
   const handleClosePartyMemberEdit = () => {
@@ -376,10 +386,20 @@ export default function Lobby() {
                   </div>
                 }
                 { partyMembers.length > 0 &&
-                  <div className="text-red-600 cursor-pointer" onClick={handleLeaveParty}>
+                  <div className="relative text-red-600 cursor-pointer" onClick={handleToggleLeavePartyPane}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                     </svg>
+                    { showConfirmLeaveParty &&
+                      <div className="absolute flex justify-between items-center left-9 -top-1 w-44 h-10 px-2 rounded shadow-lg bg-white">
+                        <button className="text-light text-white bg-red-500 px-2 py-1 rounded" onClick={handleLeaveParty}>leave party</button>
+                        <button className="text-black" onClick={handleToggleLeavePartyPane}>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    }
                   </div>
                 }
               </div>
