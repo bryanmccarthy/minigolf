@@ -305,6 +305,11 @@ export default function Lobby() {
       fetchInvites();
     }
 
+    // TODO: profile channel
+    // kicked from party event
+    // name changes of party members
+    // user accepts invite
+
     const messageChannel = supabase.channel('messages');
 
     if (profile?.party_id !== null) {
@@ -359,9 +364,43 @@ export default function Lobby() {
         .subscribe();
     }
 
+    const invitesChannel = supabase.channel('invites');
+
+    if (profile?.party_id !== null) {
+      invitesChannel
+        .on(
+          'postgres_changes',
+          { event: 'INSERT',
+            schema: 'public',
+            table: 'invites',
+            filter: `receiver_display_name=eq.${profile?.display_name}`
+          },
+          (
+            payload: RealtimePostgresInsertPayload<Invite> 
+          ) => {
+            console.log("new invite payload: ", payload);
+            setInvites((prevInvs: Invite[]) => {
+              const invites = [...prevInvs];
+              const inv = (({ id, party_id, receiver_display_name, sender_display_name }: Invite) => ({
+                id,
+                party_id,
+                receiver_display_name,
+                sender_display_name
+              }))(payload.new);
+
+              invites.push(inv);
+
+              return invites;
+            })
+          }
+        )
+        .subscribe();
+    }
+
     return () => {
       messageChannel && supabase.removeChannel(messageChannel);
       partyChannel && supabase.removeChannel(partyChannel);
+      invitesChannel && supabase.removeChannel(invitesChannel);
     }
 
   }, [profile]);
