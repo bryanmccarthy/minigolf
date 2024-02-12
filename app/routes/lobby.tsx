@@ -119,18 +119,13 @@ export default function Lobby() {
   const handleMakeSelectedMemberLeader = async () => {
     if (!profile) return;
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("parties")
       .update({ leader: selectedMember?.id })
       .eq("id", profile.party_id);
 
     if (error) {
       console.log("error: ", error); // TODO: handle error
-    } else {
-      console.log("made selected member leader");
-      console.log("data: ", data);
-      // TODO: update party state
-      // setSelectedMember(null);
     }
   }
 
@@ -143,8 +138,7 @@ export default function Lobby() {
     if (error) {
       console.log("error: ", error); // TODO: handle error
     } else {
-      console.log("kicked user from party");
-      setPartyMembers(partyMembers.filter((member: Profile) => member.id !== id));
+      // setPartyMembers(partyMembers.filter((member: Profile) => member.id !== id));
     }
   }
 

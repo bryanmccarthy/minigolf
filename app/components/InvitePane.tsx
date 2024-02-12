@@ -12,13 +12,17 @@ type InvitePanePropsTypes = {
 export default function InvitePane({ displayName, partyId, partyMembers, supabase, close }: InvitePanePropsTypes) {
   
   const [username, setUsername] = useState('');
+  const [showUserInPartyMsg, setShowUserInPartyMsg] = useState(false);
 
   const handleInviteUser = async () => {
     console.log("Inviting user: ", username);
     if (partyMembers.some((member) => member.display_name === username)) {
       console.log("User already in party");
+      setShowUserInPartyMsg(true);
       setUsername('');
       return;
+    } else {
+      setShowUserInPartyMsg(false);
     }
 
     const { error } = await supabase.from('invites').insert([
@@ -27,6 +31,8 @@ export default function InvitePane({ displayName, partyId, partyMembers, supabas
 
     if (error) {
       console.log("Error inviting user: ", error.message);
+    } else {
+      console.log("User invited");
     }
 
     setUsername('');
@@ -42,6 +48,7 @@ export default function InvitePane({ displayName, partyId, partyMembers, supabas
             </svg>
           </button>
         </div>
+        { showUserInPartyMsg && <p className="text-xs text-red-500">User already in party</p> }
 	      <input 
           value={username} 
           placeholder="username" 
