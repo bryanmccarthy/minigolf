@@ -5,7 +5,7 @@ import useProfile from "../hooks/useProfile";
 import InvitePane from "../components/InvitePane";
 import PartyMessagesBox from "../components/PartyMessagesBox";
 import PartyMemberEditPane from "../components/PartyMemberEditPane";
-import { RealtimePostgresInsertPayload } from "@supabase/supabase-js";
+import { RealtimePostgresInsertPayload, RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
 
 const courses = [
   "Practice",
@@ -338,8 +338,30 @@ export default function Lobby() {
         .subscribe();
     }
 
+    const partyChannel = supabase.channel('parties');
+
+    if (profile?.party_id !== null) {
+      partyChannel
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE',
+            schema: 'public',
+            table: 'parties',
+            filter: `id=eq.${profile?.party_id}`
+          },
+          (
+            payload: RealtimePostgresUpdatePayload<Party>
+          ) => {
+            setParty(payload.new);
+            setShowPartyMemberEdit(false); // Hide after member is promoted to leader or kicked
+          }
+        )
+        .subscribe();
+    }
+
     return () => {
-      messageChannel && supabase.removeChannel(messageChannel)
+      messageChannel && supabase.removeChannel(messageChannel);
+      partyChannel && supabase.removeChannel(partyChannel);
     }
 
   }, [profile]);
