@@ -16,7 +16,8 @@ const courses = [
 export default function Lobby() {
   const navigate = useNavigate();
   const { session, supabase } = useOutletContext<OutletContext>();
-  const profile = useProfile(supabase, session.user.id);
+  // const profile = useProfile(supabase, session.user.id);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [party, setParty] = useState<Party | null>(null);
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
   const [partyMessages, setPartyMessages] = useState<Message[]>([]);
@@ -230,6 +231,14 @@ export default function Lobby() {
   }
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      const { data } = await supabase.from("profiles").select().eq("id", session.user.id);
+
+      if (data) {
+        setProfile(data[0]);
+      }
+    }
+
     const fetchParty = async () => {
       if (!profile) return;
 
@@ -297,18 +306,53 @@ export default function Lobby() {
       if (profile.party_id === null) {
         createParty();
       } else {
-        fetchParty();
-        fetchPartyMembers();
-        fetchPartyMessages();
+        if (party === null) fetchParty();
+        if (partyMembers.length === 0) fetchPartyMembers();
+        if (partyMessages.length === 0) fetchPartyMessages();
       }
 
-      fetchInvites();
+      if (invites.length === 0) fetchInvites();
+    } else {
+      fetchProfile();
     }
 
     // TODO: profile channel
     // kicked from party event
     // name changes of party members
     // user accepts invite
+    const profileChannel = supabase.channel('profiles');
+
+    if (profile?.party_id !== null) {
+      profileChannel
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `party_id=eq.${profile?.party_id}`
+          },
+          (
+            payload: RealtimePostgresUpdatePayload<Profile>
+          ) => {
+            console.log("profile update payload: ", payload);
+            const updatedProfileId = payload.new.id;
+
+            if (updatedProfileId === profile?.id) {
+              setProfile(payload.new);
+            } else {
+              console.log("Other member updated");
+              const newPartyMembers = [...partyMembers];
+              newPartyMembers.filter((member) => {
+                member.id === updatedProfileId;
+              })
+              newPartyMembers.push(payload.new);
+              console.log("new party members: ", newPartyMembers);
+              setPartyMembers(newPartyMembers);
+            }
+          }
+        )
+        .subscribe();
+    }
 
     const messageChannel = supabase.channel('messages');
 
@@ -364,10 +408,10 @@ export default function Lobby() {
         .subscribe();
     }
 
-    const invitesChannel = supabase.channel('invites');
+    const inviteChannel = supabase.channel('invites');
 
     if (profile?.party_id !== null) {
-      invitesChannel
+      inviteChannel
         .on(
           'postgres_changes',
           { event: 'INSERT',
@@ -400,7 +444,8 @@ export default function Lobby() {
     return () => {
       messageChannel && supabase.removeChannel(messageChannel);
       partyChannel && supabase.removeChannel(partyChannel);
-      invitesChannel && supabase.removeChannel(invitesChannel);
+      inviteChannel && supabase.removeChannel(inviteChannel);
+      profileChannel && supabase.removeChannel(profileChannel);
     }
 
   }, [profile]);
