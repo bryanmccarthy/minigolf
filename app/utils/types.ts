@@ -20,6 +20,7 @@ export type Message = {
   id: string;
   party_id: string;
   sender_id: string;
+  sender_display_name: string;
   content: string;
   created_at: string;
 }

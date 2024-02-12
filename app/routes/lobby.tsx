@@ -106,7 +106,7 @@ export default function Lobby() {
     const { error } = await supabase
       .from("messages")
       .insert([
-        { party_id: profile.party_id, sender_id: profile.id, content: message }
+        { party_id: profile.party_id, sender_id: profile.id, sender_display_name: profile.display_name, content: message }
       ]);
 
     if (error) {
@@ -316,10 +316,6 @@ export default function Lobby() {
       fetchProfile();
     }
 
-    // TODO: profile channel
-    // kicked from party event
-    // name changes of party members
-    // user accepts invite
     const profileChannel = supabase.channel('profiles');
 
     if (profile?.party_id !== null) {
@@ -334,19 +330,18 @@ export default function Lobby() {
           (
             payload: RealtimePostgresUpdatePayload<Profile>
           ) => {
-            console.log("profile update payload: ", payload);
             const updatedProfileId = payload.new.id;
 
             if (updatedProfileId === profile?.id) {
               setProfile(payload.new);
             } else {
-              console.log("Other member updated");
               const newPartyMembers = [...partyMembers];
+
               newPartyMembers.filter((member) => {
                 member.id === updatedProfileId;
               })
+
               newPartyMembers.push(payload.new);
-              console.log("new party members: ", newPartyMembers);
               setPartyMembers(newPartyMembers);
             }
           }
@@ -370,10 +365,11 @@ export default function Lobby() {
           ) => {
             setPartyMessages((prevMsgs: Message[]) => {
               const messages = [...prevMsgs];
-              const msg = (({ id, party_id, sender_id, content, created_at }: Message) => ({
+              const msg = (({ id, party_id, sender_id, sender_display_name, content, created_at }: Message) => ({
                 id,
                 party_id,
                 sender_id,
+                sender_display_name,
                 content,
                 created_at
               }))(payload.new);

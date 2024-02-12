@@ -18,7 +18,11 @@ export default function PartyMessagesBox({ partyMessages, profile, messagesBoxRe
         :
           <div key={idx} className="flex flex-col p-1 mx-1">
             <div className="bg-neutral-100 shadow-lg w-fit min-w-6 max-w-56 min-h-8 rounded-lg rounded-bl-sm p-1">{ message.content }</div>
-            <div className="text-xs font-thin text-neutral-600">{ new Date(message.created_at).toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }</div>
+            <div className="flex gap-1">
+              <div className="text-xs font-thin text-neutral-600">{ message.sender_display_name }</div>
+              <div className="text-xs font-thin text-neutral-600">•</div>
+              <div className="text-xs font-thin text-neutral-600">{ new Date(message.created_at).toLocaleString('en-US', { day: "2-digit", month: "short", hour: 'numeric', minute: 'numeric', hour12: true }) }</div>
+            </div>
           </div>
         ))
       }
