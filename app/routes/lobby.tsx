@@ -268,19 +268,37 @@ export default function Lobby() {
     }
 
     const createParty = async () => {
-      const { data, error } = await supabase.from("parties").insert([{ leader: profile?.id }]).select();
-
+      const { data, error } = await supabase.from("parties").select().eq("leader", profile?.id);
+      
       if (error) {
         console.log("error: ", error); // TODO: handle error
       } else {
-        // Join the created party
-        const partyId = data[0].id;
-        const { error } = await supabase.from("profiles").update({ party_id: partyId }).eq("id", profile?.id).select();
+        if (data.length > 0) {
+          // Join the existing party
+          const { error } = await supabase.from("profiles").update({ party_id: data[0].id }).eq("id", profile?.id).select();
 
-        if (error) {
-          console.log("error joining party: ", error); // TODO: handle error
+          if (error) {
+            console.log("error joining party: ", error); // TODO: handle error
+          } else {
+            setParty(data[0]);
+          }
         } else {
-          window.location.reload(); // TODO: find a better way to refresh the page
+          // Create a new party
+          const { data, error } = await supabase.from("parties").insert([{ leader: profile?.id, game_state: 'lobby' }]).select();
+
+          if (error) {
+            console.log("error: ", error); // TODO: handle error
+          } else {
+            // Join the created party
+            const partyId = data[0].id;
+            const { error } = await supabase.from("profiles").update({ party_id: partyId }).eq("id", profile?.id).select();
+
+            if (error) {
+              console.log("error joining party: ", error); // TODO: handle error
+            } else {
+              setParty(data[0]);
+            }
+          }
         }
       }
     }
