@@ -409,6 +409,8 @@ export default function Lobby() {
           (
             payload: RealtimePostgresUpdatePayload<Party>
           ) => {
+            console.log("party update payload: ", payload);
+            // party_state: 'lobby' | 'game'
             setParty(payload.new);
             setShowPartyMemberEdit(false); // Hide after member is promoted to leader or kicked
           }
@@ -562,15 +564,25 @@ export default function Lobby() {
                 Course
               </p>
               <div className="relative flex flex-col gap-2">
-                <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg cursor-pointer" onClick={handleShowCourseDropdown}>
-                  <p className="text-black text-lg px-2 truncate">{courseSelected}</p>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-                  </svg>
-                </div>
-                <Link to={`/${courseSelected}`} className="flex items-center justify-center bg-orange-200 rounded h-12 shadow-lg">
-                  <p className="text-black text-xl font-semibold">Start</p>
-                </Link>
+                { party && profile.id === party.leader ?
+                  <>
+                  <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg cursor-pointer" onClick={handleShowCourseDropdown}>
+                    <p className="text-black text-lg px-2 truncate">{courseSelected}</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                    </svg>
+                  </div>
+                  <Link to={`/${courseSelected}`} className="flex items-center justify-center bg-orange-200 rounded h-12 shadow-lg">
+                    <p className="text-black text-xl font-semibold">Start</p>
+                  </Link>
+                  </>
+                  :
+                  <>
+                  <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg">
+                    <p className="text-black text-lg px-2 truncate">{courseSelected}</p>
+                  </div>
+                  </>
+                }
                 { showCourseDropdown &&
                   <div className="absolute flex flex-col top-0 right-0 w-full rounded shadow-lg bg-white">
                     <button className="ml-auto p-2" onClick={handleShowCourseDropdown}>
