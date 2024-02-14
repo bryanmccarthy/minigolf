@@ -21,7 +21,7 @@ export default function Lobby() {
   const [party, setParty] = useState<Party | null>(null);
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
   const [partyMessages, setPartyMessages] = useState<Message[]>([]);
-  const [courseSelected, setCourseSelected] = useState('Practice');
+  const [courseSelected, setCourseSelected] = useState('');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifcations, setShowNotifications] = useState(false);
@@ -69,9 +69,14 @@ export default function Lobby() {
     setShowCourseDropdown(!showCourseDropdown);
   }
 
-  const handleCourseSelected = (course: string) => {
-    setCourseSelected(course);
-    setShowCourseDropdown(false);
+  const handleCourseSelected = async (course: string) => {
+    const { error } = await supabase.from("parties").update({ course }).eq("id", profile?.party_id);
+
+    if (error) {
+      console.log("error: ", error); // TODO: handle error
+    } else {
+      setShowCourseDropdown(false);
+    }
   }
 
   const handleUsernameInputChange = (e: any) => {
@@ -214,6 +219,14 @@ export default function Lobby() {
     }
   }
 
+  const handleStartGame = async () => {
+    const { error } = await supabase.from("parties").update({ game_state: 'game' }).eq("id", profile?.party_id).select();
+
+    if (error) {
+      console.log("error: ", error); // TODO: handle error
+    }
+  }
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
 
@@ -239,6 +252,7 @@ export default function Lobby() {
       const { data, error } = await supabase.from("parties").select().eq("id", profile.party_id);
       if (data) {
         setParty(data[0]);
+        setCourseSelected(data[0].course);
       } else {
         console.log("error: ", error); // TODO: handle error
       }
@@ -410,9 +424,13 @@ export default function Lobby() {
             payload: RealtimePostgresUpdatePayload<Party>
           ) => {
             console.log("party update payload: ", payload);
-            // party_state: 'lobby' | 'game'
-            setParty(payload.new);
-            setShowPartyMemberEdit(false); // Hide after member is promoted to leader or kicked
+            if (payload.new.game_state === 'game') {
+              navigate(payload.new.course);
+            } else {
+              setParty(payload.new);
+              setCourseSelected(payload.new.course);
+              setShowPartyMemberEdit(false); // Hide after member is promoted to leader or kicked
+            }
           }
         )
         .subscribe();
@@ -567,19 +585,20 @@ export default function Lobby() {
                 { party && profile.id === party.leader ?
                   <>
                   <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg cursor-pointer" onClick={handleShowCourseDropdown}>
-                    <p className="text-black text-lg px-2 truncate">{courseSelected}</p>
+                    <p className="text-black text-lg px-2 truncate">{ courseSelected ? courseSelected : <p className="text-neutral-500">select a course</p> }</p>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                     </svg>
                   </div>
-                  <Link to={`/${courseSelected}`} className="flex items-center justify-center bg-orange-200 rounded h-12 shadow-lg">
+                  {/* TODO: maybe replace with ready player states */}
+                  <button className="flex items-center justify-center bg-orange-200 rounded h-12 shadow-lg" onClick={handleStartGame}>
                     <p className="text-black text-xl font-semibold">Start</p>
-                  </Link>
+                  </button>
                   </>
                   :
                   <>
                   <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg">
-                    <p className="text-black text-lg px-2 truncate">{courseSelected}</p>
+                    <p className="text-black text-lg px-2 truncate">{ courseSelected ? courseSelected : <p className="text-neutral-500">waiting for leader...</p> }</p>
                   </div>
                   </>
                 }

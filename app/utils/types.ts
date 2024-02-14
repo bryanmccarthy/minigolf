@@ -14,6 +14,8 @@ export type Profile = {
 export type Party = {
   id: string;
   leader: string;
+  game_state: string;
+  course: string;
 };
 
 export type Message = {
