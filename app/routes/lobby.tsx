@@ -423,7 +423,7 @@ export default function Lobby() {
           ) => {
             console.log("party update payload: ", payload);
             if (payload.new.game_state === 'game') {
-              navigate(payload.new.course);
+              navigate(`/${payload.new.course}`);
             } else {
               setParty(payload.new);
               setShowPartyMemberEdit(false); // Hide after member is promoted to leader or kicked
