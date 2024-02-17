@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
-import { Link } from "@remix-run/react";
 import Ball from "../entities/ball";
 import Hole from "../entities/hole";
+import { useState } from "react";
+import { Link, useOutletContext } from "@remix-run/react";
+import type { OutletContext, Profile } from "../utils/types";
 
 class Obstacle {
   x: number;
@@ -23,7 +25,40 @@ class Obstacle {
 }
 
 export default function game() {
+  const { session, supabase } = useOutletContext<OutletContext>();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  const [membersBalls, setMembersBalls] = useState([
+    new Ball(300, 100, 0, 0, 10, "red"), // TODO: get members balls from supabase
+    new Ball(200, 200, 0, 0, 10, "blue"),
+  ]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data } = await supabase.from("profiles").select().eq("id", session.user.id);
+
+      if (data) {
+        setProfile(data[0]);
+      }
+    }
+
+    if (profile) {
+      // TODO: wip
+    } else {
+      fetchProfile();
+    }
+
+    const ballsChannel = supabase.channel('balls');
+    // TODO: join the channel filter balls by party_id
+
+    return () => {
+      ballsChannel && supabase.removeChannel(ballsChannel);
+    }
+
+  }, [membersBalls]);
+
+  // TODO: useEffect for moving obstacle
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -153,6 +188,11 @@ export default function game() {
       // Update ball
       ball.update();
 
+      // Update members balls
+      for (let i = 0; i < membersBalls.length; i++) {
+        membersBalls[i].update();
+      }
+
       // Clear the canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -168,6 +208,11 @@ export default function game() {
       // Ball
       ball.draw(ctx);
       if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
+
+      // Members balls
+      for (let i = 0; i < membersBalls.length; i++) {
+        membersBalls[i].draw(ctx);
+      }
 
       // Update the last timestamp
       lastTimestamp = timestamp - (deltaTime % timeStep);
@@ -193,6 +238,9 @@ export default function game() {
     }
 
   }, []);
+
+  // TODO: wait for all members to join (maybe ready up) -- not so important for practice mode
+  // return a loading screen if not all members have joined
 
   return (
     <div className="flex flex-col w-full h-[calc(100dvh)] bg-blue-400 overflow-hidden">
