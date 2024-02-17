@@ -21,7 +21,6 @@ export default function Lobby() {
   const [party, setParty] = useState<Party | null>(null);
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
   const [partyMessages, setPartyMessages] = useState<Message[]>([]);
-  const [courseSelected, setCourseSelected] = useState('');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifcations, setShowNotifications] = useState(false);
@@ -252,7 +251,6 @@ export default function Lobby() {
       const { data, error } = await supabase.from("parties").select().eq("id", profile.party_id);
       if (data) {
         setParty(data[0]);
-        setCourseSelected(data[0].course);
       } else {
         console.log("error: ", error); // TODO: handle error
       }
@@ -428,7 +426,6 @@ export default function Lobby() {
               navigate(payload.new.course);
             } else {
               setParty(payload.new);
-              setCourseSelected(payload.new.course);
               setShowPartyMemberEdit(false); // Hide after member is promoted to leader or kicked
             }
           }
@@ -585,7 +582,7 @@ export default function Lobby() {
                 { party && profile.id === party.leader ?
                   <>
                   <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg cursor-pointer" onClick={handleShowCourseDropdown}>
-                    <p className="text-black text-lg px-2 truncate">{ courseSelected ? courseSelected : <p className="text-neutral-500">select a course</p> }</p>
+                    <p className="text-black text-lg px-2 truncate">{ party.course ? party.course : <p className="text-neutral-500">select a course</p> }</p>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                     </svg>
@@ -598,7 +595,7 @@ export default function Lobby() {
                   :
                   <>
                   <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg">
-                    <p className="text-black text-lg px-2 truncate">{ courseSelected ? courseSelected : <p className="text-neutral-500">waiting for leader...</p> }</p>
+                    <p className="text-black text-lg px-2 truncate">{ party?.course ? party.course : <p className="text-neutral-500">waiting for leader...</p> }</p>
                   </div>
                   </>
                 }
@@ -610,7 +607,7 @@ export default function Lobby() {
                       </svg>
                     </button>
                     <div className="flex flex-col gap-2 pb-2">
-                      { courses.filter((course: string) => course !== courseSelected).map((course: string, idx: number) => (
+                      { courses.filter((course: string) => course !== party?.course).map((course: string, idx: number) => (
                           <button key={idx} className="text-black text-lg text-start px-4 truncate bg-neutral-100 hover:bg-neutral-200 rounded mx-1" onClick={() => handleCourseSelected(course)}>{ course }</button>
                         ))
                       }
