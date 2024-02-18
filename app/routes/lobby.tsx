@@ -600,7 +600,7 @@ export default function Lobby() {
                 { party && profile.id === party.leader ?
                   <>
                   <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg cursor-pointer" onClick={handleShowCourseDropdown}>
-                    <p className="text-black text-lg px-2 truncate">{ party.course ? party.course : <p className="text-neutral-500">select a course</p> }</p>
+                    <p className="text-black text-lg px-2 truncate">{ party.course ? party.course : <label className="text-neutral-500">select a course</label> }</p>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                     </svg>
@@ -613,7 +613,7 @@ export default function Lobby() {
                   </>
                   :
                   <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg">
-                    <p className="text-black text-lg px-2 truncate">{ party?.course ? party.course : <p className="text-neutral-500">waiting for leader...</p> }</p>
+                    <p className="text-black text-lg px-2 truncate">{ party?.course ? party.course : <label className="text-neutral-500">waiting for leader...</label> }</p>
                   </div>
                 }
                 { party?.game_state === 'game' &&
