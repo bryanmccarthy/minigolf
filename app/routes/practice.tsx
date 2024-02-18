@@ -291,6 +291,18 @@ export default function game() {
           </svg>
           <p>Back to lobby</p>
         </Link>
+        <div className="flex ml-auto gap-2 mr-4">
+          <div className="flex items-center gap-1 bg-neutral-100 rounded p-1">
+            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+            <p>{ profile?.display_name } (ME)</p>
+          </div>
+          { partyMembers.map((member: Profile, idx: number) => (
+            <div key={idx} className="flex items-center gap-1 bg-neutral-100 rounded p-1">
+              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+              <p>{ member.display_name }</p>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="flex justify-center items-center">
         <canvas ref={canvasRef} width={800} height={600} className="rounded-lg" />
