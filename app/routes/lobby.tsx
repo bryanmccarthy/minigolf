@@ -223,6 +223,24 @@ export default function Lobby() {
 
     if (error) {
       console.log("error: ", error); // TODO: handle error
+    } else {
+      navigate(`/${party?.course}`);
+    }
+  }
+
+  const handleEndGameClick = async () => {
+    if (party?.game_state === 'game') {
+      const { error } = await supabase.from("parties").update({ game_state: 'lobby' }).eq("id", profile?.party_id).select();
+
+      if (error) {
+        console.log("error: ", error); // TODO: handle error
+      }
+    }
+  }
+
+  const handleJoinGameClick = () => {
+    if (party?.game_state === 'game') {
+      navigate(`/${party.course}`);
     }
   }
 
@@ -587,17 +605,26 @@ export default function Lobby() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                     </svg>
                   </div>
-                  {/* TODO: maybe replace with ready player states */}
-                  <button className="flex items-center justify-center bg-orange-200 rounded h-12 shadow-lg" onClick={handleStartGame}>
-                    <p className="text-black text-xl font-semibold">Start</p>
-                  </button>
+                  { party?.game_state === 'lobby' &&
+                    <button className="flex items-center justify-center bg-orange-200 rounded h-12 shadow-lg" onClick={handleStartGame}>
+                      <p className="text-black text-xl">Start</p>
+                    </button>
+                  }
                   </>
                   :
-                  <>
                   <div className="flex items-center justify-between h-12 bg-white rounded shadow-lg">
                     <p className="text-black text-lg px-2 truncate">{ party?.course ? party.course : <p className="text-neutral-500">waiting for leader...</p> }</p>
                   </div>
-                  </>
+                }
+                { party?.game_state === 'game' &&
+                  <button className="flex items-center justify-center h-12 bg-orange-200 rounded shadow-lg" onClick={handleJoinGameClick}>
+                    <p className="text-black text-lg px-2 truncate">Join game</p>
+                  </button>
+                }
+                { party?.game_state === 'game' && profile.id === party.leader &&
+                  <button className="flex items-center justify-center h-12 bg-red-400 rounded shadow-lg" onClick={handleEndGameClick}>
+                    <p className="text-black text-lg px-2 truncate">End game</p>
+                  </button>
                 }
                 { showCourseDropdown &&
                   <div className="absolute flex flex-col top-0 right-0 w-full rounded shadow-lg bg-white">

@@ -1,3 +1,11 @@
+enum StrokeState {
+  STILL = "still",
+  MOVING = "moving",
+  FINISHED = "finished",
+  IN_HOLE = "inHole",
+  OUT_OF_BOUNDS = "outOfBounds"
+}
+
 export default class Ball {
   x: number;
   y: number;
@@ -5,6 +13,7 @@ export default class Ball {
   vy: number;
   radius: number;
   color: string;
+  strokeState: string = StrokeState.STILL;
   moving: boolean = false;
   inHole: boolean = false;
   friction: number = 0.96;

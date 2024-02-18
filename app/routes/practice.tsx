@@ -4,6 +4,7 @@ import Hole from "../entities/hole";
 import { useState } from "react";
 import { Link, useOutletContext } from "@remix-run/react";
 import type { OutletContext, Profile } from "../utils/types";
+import { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
 
 class Obstacle {
   x: number;
@@ -28,11 +29,14 @@ export default function game() {
   const { session, supabase } = useOutletContext<OutletContext>();
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
 
-  const [membersBalls, setMembersBalls] = useState([
-    new Ball(300, 100, 0, 0, 10, "red"), // TODO: get members balls from supabase
-    new Ball(200, 200, 0, 0, 10, "blue"),
-  ]);
+  const updatePlayerPosition = async (x: number, y: number) => {
+    const { error } = await supabase.from("profiles").update({ ball_x: x, ball_y: y }).eq("id", profile?.id);
+    if (error) {
+      console.log("Error updating player position: ", error.message);
+    }
+  }
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,20 +47,66 @@ export default function game() {
       }
     }
 
+    const fetchPartyMembers = async () => {
+      if (!profile) return;
+
+      const { data, error } = await supabase.from("profiles").select().eq("party_id", profile.party_id);
+      if (data) {
+        const filteredData = data.filter((member: Profile) => member.id !== profile.id);
+        setPartyMembers(filteredData);
+        console.log("Party members: ", filteredData);
+      } else {
+        console.log("error: ", error); // TODO: handle error
+      }
+    }
+
     if (profile) {
       // TODO: wip
+      console.log("Profile: ", profile);
+      fetchPartyMembers();
     } else {
       fetchProfile();
     }
 
-    const ballsChannel = supabase.channel('balls');
-    // TODO: join the channel filter balls by party_id
+    // Profile channel contains ball updates
+    const profileChannel = supabase.channel('profiles');
 
-    return () => {
-      ballsChannel && supabase.removeChannel(ballsChannel);
+    if (profile?.party_id !== null) {
+      profileChannel
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `party_id=eq.${profile?.party_id}`
+          },
+          (
+            payload: RealtimePostgresUpdatePayload<Profile>
+          ) => {
+            const updatedProfileId = payload.new.id;
+
+            if (updatedProfileId === profile?.id) {
+              setProfile(payload.new);
+            } else {
+              const newPartyMembers = [...partyMembers];
+
+              newPartyMembers.filter((member) => {
+                member.id === updatedProfileId;
+              });
+
+              newPartyMembers.push(payload.new);
+              setPartyMembers(newPartyMembers);
+            }
+          }
+        )
+        .subscribe();
     }
 
-  }, [membersBalls]);
+    return () => {
+      profileChannel && supabase.removeChannel(profileChannel);
+    }
+
+  }, [profile]);
 
   // TODO: useEffect for moving obstacle
 
@@ -97,7 +147,7 @@ export default function game() {
       mouseDownY = e.clientY - rect.top;
     }
 
-    const handleMouseUp = (e: MouseEvent) => {
+    const handleMouseUp = async (e: MouseEvent) => {
       if (ball.moving) return;
 
       isMouseDown = false;
@@ -188,11 +238,6 @@ export default function game() {
       // Update ball
       ball.update();
 
-      // Update members balls
-      for (let i = 0; i < membersBalls.length; i++) {
-        membersBalls[i].update();
-      }
-
       // Clear the canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -208,11 +253,6 @@ export default function game() {
       // Ball
       ball.draw(ctx);
       if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
-
-      // Members balls
-      for (let i = 0; i < membersBalls.length; i++) {
-        membersBalls[i].draw(ctx);
-      }
 
       // Update the last timestamp
       lastTimestamp = timestamp - (deltaTime % timeStep);
@@ -237,7 +277,7 @@ export default function game() {
       cancelAnimationFrame(requestID);
     }
 
-  }, []);
+  }, [profile]);
 
   // TODO: wait for all members to join (maybe ready up) -- not so important for practice mode
   // return a loading screen if not all members have joined
