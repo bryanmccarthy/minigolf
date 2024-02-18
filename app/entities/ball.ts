@@ -14,7 +14,6 @@ export default class Ball {
   radius: number;
   color: string;
   strokeState: string = StrokeState.STILL;
-  moving: boolean = false;
   inHole: boolean = false;
   friction: number = 0.96;
 
@@ -111,7 +110,10 @@ export default class Ball {
     this.vy *= this.friction;
     if (Math.abs(this.vx) < 0.1) this.vx = 0;
     if (Math.abs(this.vy) < 0.1) this.vy = 0;
-    if (this.vx === 0 && this.vy === 0) this.moving = false;
-    else this.moving = true;
+    if (this.vx === 0 && this.vy === 0) {
+      if (this.strokeState === StrokeState.MOVING) this.strokeState = "finished";
+    } else {
+      this.strokeState = StrokeState.MOVING;
+    }
   }
 }

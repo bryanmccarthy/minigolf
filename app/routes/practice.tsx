@@ -32,6 +32,7 @@ export default function game() {
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
 
   const updatePlayerPosition = async (x: number, y: number) => {
+    console.log("Updating player: ", profile?.id, x, y);
     const { error } = await supabase.from("profiles").update({ ball_x: x, ball_y: y }).eq("id", profile?.id);
     if (error) {
       console.log("Error updating player position: ", error.message);
@@ -139,7 +140,7 @@ export default function game() {
     ];
 
     const handleMouseDown = (e: MouseEvent) => {
-      if (ball.moving) return;
+      if (ball.strokeState === "moving") return;
 
       isMouseDown = true;
       const rect = canvas.getBoundingClientRect();
@@ -148,7 +149,7 @@ export default function game() {
     }
 
     const handleMouseUp = async (e: MouseEvent) => {
-      if (ball.moving) return;
+      if (ball.strokeState === "moving") return;
 
       isMouseDown = false;
       const rect = canvas.getBoundingClientRect();
@@ -158,7 +159,7 @@ export default function game() {
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (ball.moving) return;
+      if (ball.strokeState === "moving") return;
 
       if (isMouseDown) {
         const rect = canvas.getBoundingClientRect();
@@ -180,7 +181,7 @@ export default function game() {
       ball.y = HEIGHT / 2;
       ball.vx = 0;
       ball.vy = 0;
-      ball.moving = false;
+      ball.strokeState = "still";
       drawOutOfBoundsMessage(ctx, WIDTH, HEIGHT);
     }
 
@@ -230,13 +231,19 @@ export default function game() {
           ball.y = hole.y;
           ball.vx = 0;
           ball.vy = 0;
-          ball.moving = false;
+          ball.strokeState = "inHole";
           ball.inHole = true;
         }
       }
 
       // Update ball
       ball.update();
+
+      // Update player position
+      if (ball.strokeState === "finished") {
+        updatePlayerPosition(ball.x, ball.y);
+        ball.strokeState = "still";
+      }
 
       // Clear the canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -253,6 +260,19 @@ export default function game() {
       // Ball
       ball.draw(ctx);
       if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
+
+      // Party members balls
+      for (let i = 0; i < partyMembers.length; i++) {
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(partyMembers[i].ball_x, partyMembers[i].ball_y, 10, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      // TODO: remove this -- ball state
+      ctx.fillStyle = "black";
+      ctx.font = "20px Arial";
+      ctx.fillText(`Ball state: ${ball.strokeState}`, 10, 30);
 
       // Update the last timestamp
       lastTimestamp = timestamp - (deltaTime % timeStep);
@@ -291,6 +311,18 @@ export default function game() {
           </svg>
           <p>Back to lobby</p>
         </Link>
+        {/* test */}
+        <div>
+          { partyMembers.map((member: Profile, idx: number) => (
+            <div key={idx} className="flex items-center gap-1 bg-neutral-100 rounded p-1">
+              <p>Member: { member.display_name }</p>
+              <p>Ball X:{ member.ball_x }</p>
+              <p>Ball Y:{ member.ball_y }</p>
+            </div>
+          ))
+          }
+        </div>
+        {/* test */}
         <div className="flex ml-auto gap-2 mr-4">
           <div className="flex items-center gap-1 bg-neutral-100 rounded p-1">
             <div className="w-3 h-3 bg-green-400 rounded-full"></div>

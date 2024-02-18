@@ -9,6 +9,8 @@ export type Profile = {
   id: string;
   display_name: string;
   party_id: string;
+  ball_x: number;
+  ball_y: number;
 };
 
 export type Party = {
