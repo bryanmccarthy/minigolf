@@ -30,10 +30,12 @@ export default function game() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
+  const [ballPos, setBallPos] = useState<any | null>(null);
 
   const updatePlayerPosition = async (x: number, y: number) => {
     console.log("Updating player: ", profile?.id, x, y);
-    const { error } = await supabase.from("profiles").update({ ball_x: x, ball_y: y }).eq("id", profile?.id);
+    
+    const { error } = await supabase.from("balls").update({ x, y }).eq("profile_id", profile?.id);
     if (error) {
       console.log("Error updating player position: ", error.message);
     }
@@ -61,10 +63,23 @@ export default function game() {
       }
     }
 
+    const fetchBall = async () => {
+      if (!profile) return;
+
+      const { data, error } = await supabase.from("balls").select().eq("profile_id", profile.id);
+      if (data) {
+        console.log("Ball: ", data[0]);
+        setBallPos(data[0]);
+      } else {
+        console.log("error: ", error); // TODO: handle error
+      }  
+    }
+
     if (profile) {
       // TODO: wip
       console.log("Profile: ", profile);
       fetchPartyMembers();
+      fetchBall();
     } else {
       fetchProfile();
     }
@@ -112,6 +127,8 @@ export default function game() {
   // TODO: useEffect for moving obstacle
 
   useEffect(() => {
+    if (!profile || !ballPos) return;
+
     const canvas = canvasRef.current;
     const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
     const WIDTH = 800;
@@ -132,7 +149,7 @@ export default function game() {
     let mouseDownY = 0;
 
     // Initial game objects
-    const ball = new Ball(WIDTH / 2, HEIGHT / 2, 0, 0, 10, "white");
+    const ball = new Ball(ballPos.x, ballPos.y, 0, 0, 10, "white");
     const holes = [
       new Hole(100, 100, 20),
       new Hole(250, 500, 20),
@@ -262,12 +279,12 @@ export default function game() {
       if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
 
       // Party members balls
-      for (let i = 0; i < partyMembers.length; i++) {
-        ctx.fillStyle = "white";
-        ctx.beginPath();
-        ctx.arc(partyMembers[i].ball_x, partyMembers[i].ball_y, 10, 0, 2 * Math.PI);
-        ctx.fill();
-      }
+      // for (let i = 0; i < partyMembers.length; i++) {
+      //   ctx.fillStyle = "white";
+      //   ctx.beginPath();
+      //   ctx.arc(partyMembers[i].ball_x, partyMembers[i].ball_y, 10, 0, 2 * Math.PI);
+      //   ctx.fill();
+      // }
 
       // TODO: remove this -- ball state
       ctx.fillStyle = "black";
@@ -297,7 +314,7 @@ export default function game() {
       cancelAnimationFrame(requestID);
     }
 
-  }, [profile]);
+  }, [profile, ballPos]);
 
   // TODO: wait for all members to join (maybe ready up) -- not so important for practice mode
   // return a loading screen if not all members have joined
@@ -312,7 +329,7 @@ export default function game() {
           <p>Back to lobby</p>
         </Link>
         {/* test */}
-        <div>
+        {/* <div>
           { partyMembers.map((member: Profile, idx: number) => (
             <div key={idx} className="flex items-center gap-1 bg-neutral-100 rounded p-1">
               <p>Member: { member.display_name }</p>
@@ -321,7 +338,7 @@ export default function game() {
             </div>
           ))
           }
-        </div>
+        </div> */}
         {/* test */}
         <div className="flex ml-auto gap-2 mr-4">
           <div className="flex items-center gap-1 bg-neutral-100 rounded p-1">
