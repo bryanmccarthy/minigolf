@@ -30,6 +30,7 @@ export default function game() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
+  const [partyMembersBalls, setPartyMembersBalls] = useState<any[]>([]);
   const [ballPos, setBallPos] = useState<any | null>(null);
 
   const updatePlayerPosition = async (x: number, y: number) => {
@@ -63,6 +64,18 @@ export default function game() {
       }
     }
 
+    const fetchPartyMembersBalls = async () => {
+      if (!profile) return;
+
+      const { data, error } = await supabase.from("balls").select().eq("party_id", profile.party_id);
+      if (data) {
+        console.log("Party members balls: ", data);
+        setPartyMembersBalls(data);
+      } else {
+        console.log("error: ", error); // TODO: handle error
+      }
+    }
+
     const fetchBall = async () => {
       if (!profile) return;
 
@@ -79,12 +92,12 @@ export default function game() {
       // TODO: wip
       console.log("Profile: ", profile);
       fetchPartyMembers();
+      fetchPartyMembersBalls();
       fetchBall();
     } else {
       fetchProfile();
     }
 
-    // Profile channel contains ball updates
     const profileChannel = supabase.channel('profiles');
 
     if (profile?.party_id !== null) {
@@ -127,7 +140,7 @@ export default function game() {
   // TODO: useEffect for moving obstacle
 
   useEffect(() => {
-    if (!profile || !ballPos) return;
+    if (!profile) return;
 
     const canvas = canvasRef.current;
     const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
@@ -149,12 +162,20 @@ export default function game() {
     let mouseDownY = 0;
 
     // Initial game objects
-    const ball = new Ball(ballPos.x, ballPos.y, 0, 0, 10, "white");
+    const initialX = ballPos?.x || WIDTH / 2;
+    const initialY = ballPos?.y || HEIGHT / 2;
+    const ball = new Ball(initialX, initialY, 0, 0, 10, "white");
     const holes = [
       new Hole(100, 100, 20),
       new Hole(250, 500, 20),
       new Hole(700, 300, 20),
     ];
+
+    // Party Members
+    const membersBalls: any[] = partyMembersBalls.filter((ball: any) => ball.profile_id !== profile.id).map((ball: any) => {
+      return new Ball(ball.x, ball.y, 0, 0, 10, "orange");
+    });
+    console.log("Members balls: ", membersBalls);
 
     const handleMouseDown = (e: MouseEvent) => {
       if (ball.strokeState === "moving") return;
@@ -278,6 +299,11 @@ export default function game() {
       ball.draw(ctx);
       if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
 
+      // Members Balls
+      for (let i = 0; i < membersBalls.length; i++) {
+        membersBalls[i].draw(ctx);
+      }
+
       // TODO: remove this -- ball state
       ctx.fillStyle = "black";
       ctx.font = "20px Arial";
@@ -298,7 +324,6 @@ export default function game() {
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mousemove", handleMouseMove);
 
-    // Profile channel contains ball updates
     const ballChannel = supabase.channel('balls');
 
     if (profile?.party_id !== null) {
