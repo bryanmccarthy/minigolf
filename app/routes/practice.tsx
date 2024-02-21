@@ -278,14 +278,6 @@ export default function game() {
       ball.draw(ctx);
       if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
 
-      // Party members balls
-      // for (let i = 0; i < partyMembers.length; i++) {
-      //   ctx.fillStyle = "white";
-      //   ctx.beginPath();
-      //   ctx.arc(partyMembers[i].ball_x, partyMembers[i].ball_y, 10, 0, 2 * Math.PI);
-      //   ctx.fill();
-      // }
-
       // TODO: remove this -- ball state
       ctx.fillStyle = "black";
       ctx.font = "20px Arial";
@@ -306,7 +298,29 @@ export default function game() {
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mousemove", handleMouseMove);
 
+    // Profile channel contains ball updates
+    const ballChannel = supabase.channel('balls');
+
+    if (profile?.party_id !== null) {
+      ballChannel
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE',
+            schema: 'public',
+            table: 'balls',
+          },
+          (
+            payload: RealtimePostgresUpdatePayload<Profile>
+          ) => {
+            console.log("Ball update: ", payload.new);
+          }
+        )
+        .subscribe();
+    }
+
     return () => {
+      ballChannel && supabase.removeChannel(ballChannel);
+
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
@@ -328,18 +342,6 @@ export default function game() {
           </svg>
           <p>Back to lobby</p>
         </Link>
-        {/* test */}
-        {/* <div>
-          { partyMembers.map((member: Profile, idx: number) => (
-            <div key={idx} className="flex items-center gap-1 bg-neutral-100 rounded p-1">
-              <p>Member: { member.display_name }</p>
-              <p>Ball X:{ member.ball_x }</p>
-              <p>Ball Y:{ member.ball_y }</p>
-            </div>
-          ))
-          }
-        </div> */}
-        {/* test */}
         <div className="flex ml-auto gap-2 mr-4">
           <div className="flex items-center gap-1 bg-neutral-100 rounded p-1">
             <div className="w-3 h-3 bg-green-400 rounded-full"></div>
