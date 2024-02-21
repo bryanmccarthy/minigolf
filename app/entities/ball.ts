@@ -7,6 +7,7 @@ enum StrokeState {
 }
 
 export default class Ball {
+  id: string;
   x: number;
   y: number;
   vx: number;
@@ -17,7 +18,8 @@ export default class Ball {
   inHole: boolean = false;
   friction: number = 0.96;
 
-  constructor(x: number, y: number, vx: number, vy: number, radius: number, color: string) {
+  constructor(id: string, x: number, y: number, vx: number, vy: number, radius: number, color: string) {
+    this.id = id;
     this.x = x;
     this.y = y;
     this.vx = vx;

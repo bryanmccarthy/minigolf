@@ -157,6 +157,8 @@ export default function game() {
     const timeStep = 1000 / targetFps;
 
     // Mouse
+    let mouseX = 0;
+    let mouseY = 0;
     let isMouseDown = false;
     let mouseDownX = 0;
     let mouseDownY = 0;
@@ -164,7 +166,7 @@ export default function game() {
     // Initial game objects
     const initialX = ballPos?.x || WIDTH / 2;
     const initialY = ballPos?.y || HEIGHT / 2;
-    const ball = new Ball(initialX, initialY, 0, 0, 10, "white");
+    const ball = new Ball(profile.id, initialX, initialY, 0, 0, 10, "white");
     const holes = [
       new Hole(100, 100, 20),
       new Hole(250, 500, 20),
@@ -173,7 +175,7 @@ export default function game() {
 
     // Party Members
     const membersBalls: any[] = partyMembersBalls.filter((ball: any) => ball.profile_id !== profile.id).map((ball: any) => {
-      return new Ball(ball.x, ball.y, 0, 0, 10, "orange");
+      return new Ball(ball.profile_id, ball.x, ball.y, 0, 0, 10, "orange");
     });
     console.log("Members balls: ", membersBalls);
 
@@ -198,6 +200,10 @@ export default function game() {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (ball.strokeState === "moving") return;
+
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
 
       if (isMouseDown) {
         const rect = canvas.getBoundingClientRect();
@@ -304,6 +310,19 @@ export default function game() {
         membersBalls[i].draw(ctx);
       }
 
+      // Check for mouse hover over members balls
+      for (let i = 0; i < membersBalls.length; i++) {
+        const memberBall = membersBalls[i];
+        const dx = memberBall.x - mouseX;
+        const dy = memberBall.y - mouseY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < memberBall.radius) {
+          // console.log("Hovering over member ball: ", memberBall.id);
+          // TODO: show member ball player name
+        }
+      }
+
       // TODO: remove this -- ball state
       ctx.fillStyle = "black";
       ctx.font = "20px Arial";
@@ -354,9 +373,6 @@ export default function game() {
     }
 
   }, [profile, ballPos]);
-
-  // TODO: wait for all members to join (maybe ready up) -- not so important for practice mode
-  // return a loading screen if not all members have joined
 
   return (
     <div className="flex flex-col w-full h-[calc(100dvh)] bg-blue-400 overflow-hidden">
