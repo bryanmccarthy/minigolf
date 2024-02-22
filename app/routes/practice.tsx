@@ -354,9 +354,15 @@ export default function game() {
             table: 'balls',
           },
           (
-            payload: RealtimePostgresUpdatePayload<Profile>
+            payload: RealtimePostgresUpdatePayload<any>
           ) => {
             console.log("Ball update: ", payload.new);
+            membersBalls.forEach((memberBall) => {
+              if (memberBall.id === payload.new.profile_id) {
+                memberBall.x = payload.new.x;
+                memberBall.y = payload.new.y;
+              }
+            });
           }
         )
         .subscribe();
