@@ -239,6 +239,7 @@ export default function game() {
       ball.vy = 0;
       ball.strokeState = "still";
       drawOutOfBoundsMessage(ctx, WIDTH, HEIGHT);
+      updatePlayerPosition(ball.x, ball.y);
     }
 
     const drawHoleMessage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -263,7 +264,7 @@ export default function game() {
         return;
       }
 
-      // Collisions
+      // OOB Collisions
       if (ball.x <= 0 || ball.x >= WIDTH) {
         handleOutOfBounds();
         await new Promise(r => setTimeout(r, 1000));
