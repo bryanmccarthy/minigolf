@@ -8,6 +8,7 @@ enum StrokeState {
 
 export default class Ball {
   id: string;
+  display_name: string;
   x: number;
   y: number;
   vx: number;
@@ -17,8 +18,9 @@ export default class Ball {
   strokeState: string = StrokeState.STILL;
   friction: number = 0.96;
 
-  constructor(id: string, x: number, y: number, vx: number, vy: number, radius: number, color: string) {
+  constructor(id: string, display_name: string, x: number, y: number, vx: number, vy: number, radius: number, color: string) {
     this.id = id;
+    this.display_name = display_name;
     this.x = x;
     this.y = y;
     this.vx = vx;

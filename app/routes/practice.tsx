@@ -166,7 +166,7 @@ export default function game() {
     // Initial game objects
     const initialX = ballPos?.x || WIDTH / 2;
     const initialY = ballPos?.y || HEIGHT / 2;
-    const ball = new Ball(profile.id, initialX, initialY, 0, 0, 10, "white");
+    const ball = new Ball(profile.id, `${profile.display_name} (ME)`, initialX, initialY, 0, 0, 10, "white");
     const holes = [
       new Hole(100, 100, 20),
       new Hole(250, 500, 20),
@@ -175,7 +175,9 @@ export default function game() {
 
     // Party Members
     const membersBalls: any[] = partyMembersBalls.filter((ball: any) => ball.profile_id !== profile.id).map((ball: any) => {
-      return new Ball(ball.profile_id, ball.x, ball.y, 0, 0, 10, "orange");
+      const playerProfile: any = partyMembers.find((member: Profile) => member.id === ball.profile_id);
+      const playerName = playerProfile?.display_name || "Unknown";
+      return new Ball(ball.profile_id, playerName, ball.x, ball.y, 0, 0, 10, "orange");
     });
     console.log("Members balls: ", membersBalls);
 
@@ -245,6 +247,12 @@ export default function game() {
       ctx.fillStyle = "white";
       ctx.font = "30px Arial";
       ctx.fillText("Hole! Click anywhere to continue.", width / 2 - 225, height / 2);
+    }
+
+    const displayMemberBallInfo = async (memberBall: Ball) => {
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+      ctx.fillText(`• ${memberBall.display_name}`, memberBall.x - 5, memberBall.y - 20);
     }
 
     const updateGame = async (timestamp: number) => {
@@ -319,6 +327,14 @@ export default function game() {
         drawHoleMessage(ctx, WIDTH, HEIGHT);
       }
 
+      // Check for mouse hover over ball
+      const dx = ball.x - mouseX;
+      const dy = ball.y - mouseY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < ball.radius) {
+        displayMemberBallInfo(ball);
+      }
+
       // Check for mouse hover over members balls
       for (let i = 0; i < membersBalls.length; i++) {
         const memberBall = membersBalls[i];
@@ -327,15 +343,14 @@ export default function game() {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < memberBall.radius) {
-          // console.log("Hovering over member ball: ", memberBall.id);
-          // TODO: show member ball player name
+          displayMemberBallInfo(memberBall);
         }
       }
 
-      // TODO: remove this -- ball state
-      ctx.fillStyle = "black";
-      ctx.font = "20px Arial";
-      ctx.fillText(`Ball state: ${ball.strokeState}`, 10, 30);
+      // Debug -- Ball state
+      // ctx.fillStyle = "black";
+      // ctx.font = "20px Arial";
+      // ctx.fillText(`Ball state: ${ball.strokeState}`, 10, 30);
 
       // Update the last timestamp
       lastTimestamp = timestamp - (deltaTime % timeStep);
