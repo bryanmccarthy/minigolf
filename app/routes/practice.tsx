@@ -190,6 +190,16 @@ export default function game() {
 
     const handleMouseUp = async (e: MouseEvent) => {
       if (ball.strokeState === "moving") return;
+      if (ball.strokeState === "inHole") {
+        ball.strokeState = "still";
+        ball.x = WIDTH / 2;
+        ball.y = HEIGHT / 2;
+        ball.vx = 0;
+        ball.vy = 0;
+        isMouseDown = false;
+        updatePlayerPosition(ball.x, ball.y);
+        return;
+      }
 
       isMouseDown = false;
       const rect = canvas.getBoundingClientRect();
@@ -234,7 +244,7 @@ export default function game() {
       ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = "white";
       ctx.font = "30px Arial";
-      ctx.fillText("Hole!", width / 2 - 50, height / 2);
+      ctx.fillText("Hole! Click anywhere to continue.", width / 2 - 225, height / 2);
     }
 
     const updateGame = async (timestamp: number) => {
@@ -243,14 +253,6 @@ export default function game() {
       if (deltaTime < timeStep) {
         requestAnimationFrame(updateGame);
         return;
-      }
-
-      if (ball.inHole) {
-        drawHoleMessage(ctx, WIDTH, HEIGHT);
-        await new Promise(r => setTimeout(r, 1000));
-        ball.inHole = false;
-        ball.x = WIDTH / 2;
-        ball.y = HEIGHT / 2;
       }
 
       // Collisions
@@ -275,8 +277,11 @@ export default function game() {
           ball.y = hole.y;
           ball.vx = 0;
           ball.vy = 0;
-          ball.strokeState = "inHole";
-          ball.inHole = true;
+          if (ball.strokeState === "moving") {
+            ball.strokeState = "finished";
+          } else {
+            ball.strokeState = "inHole";
+          }
         }
       }
 
@@ -308,6 +313,10 @@ export default function game() {
       // Members Balls
       for (let i = 0; i < membersBalls.length; i++) {
         membersBalls[i].draw(ctx);
+      }
+
+      if (ball.strokeState === "inHole") {
+        drawHoleMessage(ctx, WIDTH, HEIGHT);
       }
 
       // Check for mouse hover over members balls

@@ -747,7 +747,7 @@ export default function Lobby() {
             }
           </div>
         </div>
-        <div className="flex justify-center items-center py-28 mt-auto">
+        <div className="flex justify-center items-center pb-28 mt-auto">
           <div className="flex p-10 rounded-full bg-green-500 w-56 h-48 shadow-xl">
             <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-100 shadow-inner shadow-gray-400"></div>
           </div>

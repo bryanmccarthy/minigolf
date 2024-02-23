@@ -15,7 +15,6 @@ export default class Ball {
   radius: number;
   color: string;
   strokeState: string = StrokeState.STILL;
-  inHole: boolean = false;
   friction: number = 0.96;
 
   constructor(id: string, x: number, y: number, vx: number, vy: number, radius: number, color: string) {
