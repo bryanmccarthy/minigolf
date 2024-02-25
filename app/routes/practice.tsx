@@ -12,7 +12,7 @@ class Obstacle {
   width: number;
   height: number;
 
-  constructor(x: number, y: number, width: number, height:number) {
+  constructor(x: number, y: number, width: number, height: number) {
     this.x = x;
     this.y = y;
     this.width = width;
@@ -35,58 +35,75 @@ export default function game() {
 
   const updatePlayerPosition = async (x: number, y: number) => {
     console.log("Updating player: ", profile?.id, x, y);
-    
-    const { error } = await supabase.from("balls").update({ x, y }).eq("profile_id", profile?.id);
+
+    const { error } = await supabase
+      .from("balls")
+      .update({ x, y })
+      .eq("profile_id", profile?.id);
     if (error) {
       console.log("Error updating player position: ", error.message);
     }
-  }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data } = await supabase.from("profiles").select().eq("id", session.user.id);
+      const { data } = await supabase
+        .from("profiles")
+        .select()
+        .eq("id", session.user.id);
 
       if (data) {
         setProfile(data[0]);
       }
-    }
+    };
 
     const fetchPartyMembers = async () => {
       if (!profile) return;
 
-      const { data, error } = await supabase.from("profiles").select().eq("party_id", profile.party_id);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select()
+        .eq("party_id", profile.party_id);
       if (data) {
-        const filteredData = data.filter((member: Profile) => member.id !== profile.id);
+        const filteredData = data.filter(
+          (member: Profile) => member.id !== profile.id
+        );
         setPartyMembers(filteredData);
         console.log("Party members: ", filteredData);
       } else {
         console.log("error: ", error); // TODO: handle error
       }
-    }
+    };
 
     const fetchPartyMembersBalls = async () => {
       if (!profile) return;
 
-      const { data, error } = await supabase.from("balls").select().eq("party_id", profile.party_id);
+      const { data, error } = await supabase
+        .from("balls")
+        .select()
+        .eq("party_id", profile.party_id);
       if (data) {
         console.log("Party members balls: ", data);
         setPartyMembersBalls(data);
       } else {
         console.log("error: ", error); // TODO: handle error
       }
-    }
+    };
 
     const fetchBall = async () => {
       if (!profile) return;
 
-      const { data, error } = await supabase.from("balls").select().eq("profile_id", profile.id);
+      const { data, error } = await supabase
+        .from("balls")
+        .select()
+        .eq("profile_id", profile.id);
       if (data) {
         console.log("Ball: ", data[0]);
         setBallPos(data[0]);
       } else {
         console.log("error: ", error); // TODO: handle error
-      }  
-    }
+      }
+    };
 
     if (profile) {
       // TODO: wip
@@ -98,20 +115,19 @@ export default function game() {
       fetchProfile();
     }
 
-    const profileChannel = supabase.channel('profiles');
+    const profileChannel = supabase.channel("profiles");
 
     if (profile?.party_id !== null) {
       profileChannel
         .on(
-          'postgres_changes',
-          { event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `party_id=eq.${profile?.party_id}`
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "profiles",
+            filter: `party_id=eq.${profile?.party_id}`,
           },
-          (
-            payload: RealtimePostgresUpdatePayload<Profile>
-          ) => {
+          (payload: RealtimePostgresUpdatePayload<Profile>) => {
             const updatedProfileId = payload.new.id;
 
             if (updatedProfileId === profile?.id) {
@@ -133,8 +149,7 @@ export default function game() {
 
     return () => {
       profileChannel && supabase.removeChannel(profileChannel);
-    }
-
+    };
   }, [profile]);
 
   // TODO: useEffect for moving obstacle
@@ -146,7 +161,7 @@ export default function game() {
     const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
     const WIDTH = 800;
     const HEIGHT = 600;
-    
+
     if (!ctx) return;
 
     let requestID: number;
@@ -166,7 +181,16 @@ export default function game() {
     // Initial game objects
     const initialX = ballPos?.x || WIDTH / 2;
     const initialY = ballPos?.y || HEIGHT / 2;
-    const ball = new Ball(profile.id, `${profile.display_name} (ME)`, initialX, initialY, 0, 0, 10, "white");
+    const ball = new Ball(
+      profile.id,
+      `${profile.display_name} (ME)`,
+      initialX,
+      initialY,
+      0,
+      0,
+      10,
+      "white"
+    );
     const holes = [
       new Hole(100, 100, 20),
       new Hole(250, 500, 20),
@@ -174,11 +198,24 @@ export default function game() {
     ];
 
     // Party Members
-    const membersBalls: any[] = partyMembersBalls.filter((ball: any) => ball.profile_id !== profile.id).map((ball: any) => {
-      const playerProfile: any = partyMembers.find((member: Profile) => member.id === ball.profile_id);
-      const playerName = playerProfile?.display_name || "Unknown";
-      return new Ball(ball.profile_id, playerName, ball.x, ball.y, 0, 0, 10, "orange");
-    });
+    const membersBalls: any[] = partyMembersBalls
+      .filter((ball: any) => ball.profile_id !== profile.id)
+      .map((ball: any) => {
+        const playerProfile: any = partyMembers.find(
+          (member: Profile) => member.id === ball.profile_id
+        );
+        const playerName = playerProfile?.display_name || "Unknown";
+        return new Ball(
+          ball.profile_id,
+          playerName,
+          ball.x,
+          ball.y,
+          0,
+          0,
+          10,
+          "orange"
+        );
+      });
     console.log("Members balls: ", membersBalls);
 
     const handleMouseDown = (e: MouseEvent) => {
@@ -188,7 +225,7 @@ export default function game() {
       const rect = canvas.getBoundingClientRect();
       mouseDownX = e.clientX - rect.left;
       mouseDownY = e.clientY - rect.top;
-    }
+    };
 
     const handleMouseUp = async (e: MouseEvent) => {
       if (ball.strokeState === "moving") return;
@@ -208,7 +245,7 @@ export default function game() {
       const mouseUpX = e.clientX - rect.left;
       const mouseUpY = e.clientY - rect.top;
       ball.hit(mouseUpX, mouseUpY);
-    }
+    };
 
     const handleMouseMove = (e: MouseEvent) => {
       if (ball.strokeState === "moving") return;
@@ -222,15 +259,19 @@ export default function game() {
         mouseDownX = e.clientX - rect.left;
         mouseDownY = e.clientY - rect.top;
       }
-    }
+    };
 
-    const drawOutOfBoundsMessage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    const drawOutOfBoundsMessage = (
+      ctx: CanvasRenderingContext2D,
+      width: number,
+      height: number
+    ) => {
       ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
       ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = "white";
       ctx.font = "30px Arial";
       ctx.fillText("Out of bounds!", width / 2 - 100, height / 2);
-    }
+    };
 
     const handleOutOfBounds = () => {
       ball.x = WIDTH / 2;
@@ -240,21 +281,33 @@ export default function game() {
       ball.strokeState = "still";
       drawOutOfBoundsMessage(ctx, WIDTH, HEIGHT);
       updatePlayerPosition(ball.x, ball.y);
-    }
+    };
 
-    const drawHoleMessage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    const drawHoleMessage = (
+      ctx: CanvasRenderingContext2D,
+      width: number,
+      height: number
+    ) => {
       ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
       ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = "white";
       ctx.font = "30px Arial";
-      ctx.fillText("Hole! Click anywhere to continue.", width / 2 - 225, height / 2);
-    }
+      ctx.fillText(
+        "Hole! Click anywhere to continue.",
+        width / 2 - 225,
+        height / 2
+      );
+    };
 
     const displayMemberBallInfo = async (memberBall: Ball) => {
       ctx.fillStyle = "white";
       ctx.font = "20px Arial";
-      ctx.fillText(`• ${memberBall.display_name}`, memberBall.x - 5, memberBall.y - 20);
-    }
+      ctx.fillText(
+        `• ${memberBall.display_name}`,
+        memberBall.x - 5,
+        memberBall.y - 20
+      );
+    };
 
     const updateGame = async (timestamp: number) => {
       const deltaTime = timestamp - lastTimestamp;
@@ -267,11 +320,11 @@ export default function game() {
       // OOB Collisions
       if (ball.x <= 0 || ball.x >= WIDTH) {
         handleOutOfBounds();
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1000));
       }
       if (ball.y <= 0 || ball.y >= HEIGHT) {
         handleOutOfBounds();
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1000));
       }
 
       // Hole Collisions
@@ -368,19 +421,18 @@ export default function game() {
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mousemove", handleMouseMove);
 
-    const ballChannel = supabase.channel('balls');
+    const ballChannel = supabase.channel("balls");
 
     if (profile?.party_id !== null) {
       ballChannel
         .on(
-          'postgres_changes',
-          { event: 'UPDATE',
-            schema: 'public',
-            table: 'balls',
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "balls",
           },
-          (
-            payload: RealtimePostgresUpdatePayload<any>
-          ) => {
+          (payload: RealtimePostgresUpdatePayload<any>) => {
             console.log("Ball update: ", payload.new);
             membersBalls.forEach((memberBall) => {
               if (memberBall.id === payload.new.profile_id) {
@@ -401,35 +453,56 @@ export default function game() {
       canvas.removeEventListener("mousemove", handleMouseMove);
 
       cancelAnimationFrame(requestID);
-    }
-
+    };
   }, [profile, ballPos]);
 
   return (
     <div className="flex flex-col w-full h-[calc(100dvh)] bg-blue-400 overflow-hidden">
       <div className="flex py-4">
-        <Link to={"/lobby"} className="flex items-center text-lg px-2 cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        <Link
+          to={"/lobby"}
+          className="flex items-center text-lg px-2 cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+            />
           </svg>
           <p>Back to lobby</p>
         </Link>
         <div className="flex ml-auto gap-2 mr-4">
           <div className="flex items-center gap-1 bg-neutral-100 rounded p-1">
             <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-            <p>{ profile?.display_name } (ME)</p>
+            <p>{profile?.display_name} (ME)</p>
           </div>
-          { partyMembers.map((member: Profile, idx: number) => (
-            <div key={idx} className="flex items-center gap-1 bg-neutral-100 rounded p-1">
+          {partyMembers.map((member: Profile, idx: number) => (
+            <div
+              key={idx}
+              className="flex items-center gap-1 bg-neutral-100 rounded p-1"
+            >
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-              <p>{ member.display_name }</p>
+              <p>{member.display_name}</p>
             </div>
           ))}
         </div>
       </div>
       <div className="flex justify-center items-center">
-        <canvas ref={canvasRef} width={800} height={600} className="rounded-lg" />
+        <canvas
+          ref={canvasRef}
+          width={800}
+          height={600}
+          className="rounded-lg"
+        />
       </div>
     </div>
-  )
+  );
 }
