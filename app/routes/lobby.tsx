@@ -293,6 +293,7 @@ export default function Lobby() {
       const { data, error } = await supabase.from('messages').select().eq('party_id', profile.party_id);
       if (data) {
         setPartyMessages(data);
+        if (data.length > 0) setShowPartyMessagesBox(true);
       } else {
         console.log("error: ", error); // TODO: handle error
       }
