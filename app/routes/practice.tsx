@@ -11,16 +11,18 @@ class Obstacle {
   y: number;
   width: number;
   height: number;
+  color: string;
 
-  constructor(x: number, y: number, width: number, height: number) {
+  constructor(x: number, y: number, width: number, height: number, color: string) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
+    this.color = color;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = "black";
+    ctx.fillStyle = this.color;
     ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 }
@@ -196,6 +198,14 @@ export default function game() {
       new Hole(250, 500, 20),
       new Hole(700, 300, 20),
     ];
+    const obstacles = [
+      new Obstacle(150, 150, 10, 80, "gray"),
+      new Obstacle(150, 150, 80, 10, "gray"),
+      new Obstacle(230, 80, 10, 80, "gray"),
+      new Obstacle(230, 450, 80, 10, "gray"),
+      new Obstacle(310, 450, 10, 80, "gray"),
+      new Obstacle(600, 250, 10, 100, "gray"),
+    ];
 
     // Party Members
     const membersBalls: any[] = partyMembersBalls
@@ -363,9 +373,14 @@ export default function game() {
       ctx.fillStyle = "lightgreen";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Hole
+      // Holes
       for (let i = 0; i < holes.length; i++) {
         holes[i].draw(ctx);
+      }
+      
+      // Obstacles
+      for (let i = 0; i < obstacles.length; i++) {
+        obstacles[i].draw(ctx);
       }
 
       // Ball
