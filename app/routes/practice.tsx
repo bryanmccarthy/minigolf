@@ -12,6 +12,7 @@ class Obstacle {
   width: number;
   height: number;
   color: string;
+  // active: boolean;
 
   constructor(x: number, y: number, width: number, height: number, color: string) {
     this.x = x;
@@ -327,149 +328,180 @@ export default function game() {
         return;
       }
 
-      // OOB Collisions
-      if (ball.x <= 0 || ball.x >= WIDTH) {
-        handleOutOfBounds();
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-      if (ball.y <= 0 || ball.y >= HEIGHT) {
-        handleOutOfBounds();
-        await new Promise((r) => setTimeout(r, 1000));
-      }
+      // Obstacle Collisions
+      if (ball.strokeState === "moving") {
+        for (let i = 0; i < obstacles.length; i++) {
+          const obstacle = obstacles[i];
+          if (
+            ball.x + ball.radius > obstacle.x &&
+            ball.x - ball.radius < obstacle.x + obstacle.width &&
+            ball.y + ball.radius > obstacle.y &&
+            ball.y - ball.radius < obstacle.y + obstacle.height
+          ) {
+            if (ball.x + ball.radius > obstacle.x && ball.vx > 0) {
+              ball.x = obstacle.x - ball.radius;
+              ball.vx = -ball.vx;
+            } else if (ball.x - ball.radius < obstacle.x + obstacle.width && ball.vx < 0) {
+              ball.x = obstacle.x + obstacle.width + ball.radius;
+              ball.vx = -ball.vx;
+            }
 
-      // Hole Collisions
-      for (let i = 0; i < holes.length; i++) {
-        const hole = holes[i];
-        const dx = ball.x - hole.x;
-        const dy = ball.y - hole.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+            if (ball.y + ball.radius > obstacle.y && ball.vy > 0) {
+              ball.y = obstacle.y - ball.radius;
+              ball.vy = -ball.vy;
+            } else if (ball.y - ball.radius < obstacle.y + obstacle.height && ball.vy < 0) {
+              ball.y = obstacle.y + obstacle.height + ball.radius;
+              ball.vy = -ball.vy;
+            }
 
-        if (distance < hole.radius) {
-          ball.x = hole.x;
-          ball.y = hole.y;
-          ball.vx = 0;
-          ball.vy = 0;
-          if (ball.strokeState === "moving") {
-            ball.strokeState = "finished";
-          } else {
-            ball.strokeState = "inHole";
+            ball.vx *= 0.8;
+            ball.vy *= 0.8;
           }
         }
-      }
 
-      // Update ball
-      ball.update();
-
-      // Update player position
-      if (ball.strokeState === "finished") {
-        updatePlayerPosition(ball.x, ball.y);
-        ball.strokeState = "still";
-      }
-
-      // Clear the canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Background
-      ctx.fillStyle = "lightgreen";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Holes
-      for (let i = 0; i < holes.length; i++) {
-        holes[i].draw(ctx);
-      }
-      
-      // Obstacles
-      for (let i = 0; i < obstacles.length; i++) {
-        obstacles[i].draw(ctx);
-      }
-
-      // Ball
-      ball.draw(ctx);
-      if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
-
-      // Members Balls
-      for (let i = 0; i < membersBalls.length; i++) {
-        membersBalls[i].draw(ctx);
-      }
-
-      if (ball.strokeState === "inHole") {
-        drawHoleMessage(ctx, WIDTH, HEIGHT);
-      }
-
-      // Check for mouse hover over ball
-      const dx = ball.x - mouseX;
-      const dy = ball.y - mouseY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance < ball.radius) {
-        displayMemberBallInfo(ball);
-      }
-
-      // Check for mouse hover over members balls
-      for (let i = 0; i < membersBalls.length; i++) {
-        const memberBall = membersBalls[i];
-        const dx = memberBall.x - mouseX;
-        const dy = memberBall.y - mouseY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < memberBall.radius) {
-          displayMemberBallInfo(memberBall);
+        // OOB Collisions
+        if (ball.x <= 0 || ball.x >= WIDTH) {
+          handleOutOfBounds();
+          await new Promise((r) => setTimeout(r, 1000));
         }
-      }
+        if (ball.y <= 0 || ball.y >= HEIGHT) {
+          handleOutOfBounds();
+          await new Promise((r) => setTimeout(r, 1000));
+        }
 
-      // Debug -- Ball state
-      // ctx.fillStyle = "black";
-      // ctx.font = "20px Arial";
-      // ctx.fillText(`Ball state: ${ball.strokeState}`, 10, 30);
+        // Hole Collisions
+        for (let i = 0; i < holes.length; i++) {
+          const hole = holes[i];
+          const dx = ball.x - hole.x;
+          const dy = ball.y - hole.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
 
-      // Update the last timestamp
-      lastTimestamp = timestamp - (deltaTime % timeStep);
+          if (distance < hole.radius) {
+            ball.x = hole.x;
+            ball.y = hole.y;
+            ball.vx = 0;
+            ball.vy = 0;
+            if (ball.strokeState === "moving") {
+              ball.strokeState = "finished";
+            } else {
+              ball.strokeState = "inHole";
+            }
+          }
+        }
 
-      // Request the next animation frame
+        // Update ball
+        ball.update();
+
+        // Update player position
+        if (ball.strokeState === "finished") {
+          updatePlayerPosition(ball.x, ball.y);
+          ball.strokeState = "still";
+        }
+
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Background
+        ctx.fillStyle = "lightgreen";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Holes
+        for (let i = 0; i < holes.length; i++) {
+          holes[i].draw(ctx);
+        }
+
+        // Obstacles
+        for (let i = 0; i < obstacles.length; i++) {
+          obstacles[i].draw(ctx);
+        }
+
+        // Ball
+        ball.draw(ctx);
+        if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
+
+        // Members Balls
+        for (let i = 0; i < membersBalls.length; i++) {
+          membersBalls[i].draw(ctx);
+        }
+
+        if (ball.strokeState === "inHole") {
+          drawHoleMessage(ctx, WIDTH, HEIGHT);
+        }
+
+        // Check for mouse hover over ball
+        const dx = ball.x - mouseX;
+        const dy = ball.y - mouseY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < ball.radius) {
+          displayMemberBallInfo(ball);
+        }
+
+        // Check for mouse hover over members balls
+        for (let i = 0; i < membersBalls.length; i++) {
+          const memberBall = membersBalls[i];
+          const dx = memberBall.x - mouseX;
+          const dy = memberBall.y - mouseY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < memberBall.radius) {
+            displayMemberBallInfo(memberBall);
+          }
+        }
+
+        // Debug -- Ball state
+        // ctx.fillStyle = "black";
+        // ctx.font = "20px Arial";
+        // ctx.fillText(`Ball state: ${ball.strokeState}`, 10, 30);
+
+        // Update the last timestamp
+        lastTimestamp = timestamp - (deltaTime % timeStep);
+
+        // Request the next animation frame
+        requestID = requestAnimationFrame(updateGame);
+      };
+
+      // Start the game loop
       requestID = requestAnimationFrame(updateGame);
-    };
 
-    // Start the game loop
-    requestID = requestAnimationFrame(updateGame);
+      // Add event listeners
+      canvas.addEventListener("mousedown", handleMouseDown);
+      canvas.addEventListener("mouseup", handleMouseUp);
+      canvas.addEventListener("mousemove", handleMouseMove);
 
-    // Add event listeners
-    canvas.addEventListener("mousedown", handleMouseDown);
-    canvas.addEventListener("mouseup", handleMouseUp);
-    canvas.addEventListener("mousemove", handleMouseMove);
+      const ballChannel = supabase.channel("balls");
 
-    const ballChannel = supabase.channel("balls");
+      if (profile?.party_id !== null) {
+        ballChannel
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "balls",
+            },
+            (payload: RealtimePostgresUpdatePayload<any>) => {
+              console.log("Ball update: ", payload.new);
+              membersBalls.forEach((memberBall) => {
+                if (memberBall.id === payload.new.profile_id) {
+                  memberBall.x = payload.new.x;
+                  memberBall.y = payload.new.y;
+                }
+              });
+            }
+          )
+          .subscribe();
+      }
 
-    if (profile?.party_id !== null) {
-      ballChannel
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "balls",
-          },
-          (payload: RealtimePostgresUpdatePayload<any>) => {
-            console.log("Ball update: ", payload.new);
-            membersBalls.forEach((memberBall) => {
-              if (memberBall.id === payload.new.profile_id) {
-                memberBall.x = payload.new.x;
-                memberBall.y = payload.new.y;
-              }
-            });
-          }
-        )
-        .subscribe();
-    }
+      return () => {
+        ballChannel && supabase.removeChannel(ballChannel);
 
-    return () => {
-      ballChannel && supabase.removeChannel(ballChannel);
+        canvas.removeEventListener("mousedown", handleMouseDown);
+        canvas.removeEventListener("mouseup", handleMouseUp);
+        canvas.removeEventListener("mousemove", handleMouseMove);
 
-      canvas.removeEventListener("mousedown", handleMouseDown);
-      canvas.removeEventListener("mouseup", handleMouseUp);
-      canvas.removeEventListener("mousemove", handleMouseMove);
-
-      cancelAnimationFrame(requestID);
-    };
-  }, [profile, ballPos]);
+        cancelAnimationFrame(requestID);
+      };
+    }, [profile, ballPos]);
 
   return (
     <div className="flex flex-col w-full h-[calc(100dvh)] bg-blue-400 overflow-hidden">
