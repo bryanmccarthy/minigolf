@@ -1,8 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Ball from "../entities/ball";
 import Hole from "../entities/hole";
 import Obstacle from "../entities/obstacle";
-import { useState } from "react";
 import { Link, useOutletContext } from "@remix-run/react";
 import type { OutletContext, Profile } from "../utils/types";
 import { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
