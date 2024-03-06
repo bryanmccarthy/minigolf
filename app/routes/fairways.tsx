@@ -7,16 +7,13 @@ import Obstacle from "../entities/obstacle";
 
 const holes = [
   {
-    hole: 1,
-    holePos: [200, 500],
+    holePos: [100, 100],
   },
   {
-    hole: 2,
     holePos: [700, 100],
   },
   {
-    hole: 3,
-    holePos: [100, 300],
+    holePos: [400, 100],
   }
 ];
 
@@ -26,7 +23,7 @@ export default function fairways() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
-  const [currHole, setCurrHole] = useState<number>(1);
+  const [currHole, setCurrHole] = useState<number>(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
