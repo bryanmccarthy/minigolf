@@ -1,6 +1,9 @@
 import { Link, useOutletContext } from "@remix-run/react";
 import { useState, useEffect, useRef } from "react";
 import type { OutletContext, Profile } from "../utils/types";
+import Ball from "../entities/ball";
+import Hole from "../entities/hole";
+import Obstacle from "../entities/obstacle";
 
 const holes = [
   {
@@ -9,7 +12,7 @@ const holes = [
   },
   {
     hole: 2,
-    holePos: [400, 600],
+    holePos: [700, 100],
   },
   {
     hole: 3,
@@ -23,6 +26,7 @@ export default function fairways() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
+  const [currHole, setCurrHole] = useState<number>(1);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -81,6 +85,10 @@ export default function fairways() {
     const targetFps = 60;
     const timeStep = 1000 / targetFps;
 
+    // Create current hole
+    const currentHole = holes[currHole];
+    const hole = new Hole(currentHole.holePos[0], currentHole.holePos[1], 20);
+
     const updateGame = async (timestamp: number) => {
       const deltaTime = timestamp - lastTimestamp;
 
@@ -95,6 +103,9 @@ export default function fairways() {
       // Background
       ctx.fillStyle = "lightgreen";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw hole
+      hole.draw(ctx);
 
       // Update the last timestamp
       lastTimestamp = timestamp - (deltaTime % timeStep);
