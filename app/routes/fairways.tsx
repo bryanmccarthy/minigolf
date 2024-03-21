@@ -56,15 +56,18 @@ export default function fairways() {
     };
 
     if (profile) {
-      // TODO: wip
       console.log("Profile: ", profile);
       fetchPartyMembers();
+      // TODO: fetch game state for hole num -- set it (subtract 1 bc index) to refresh game to correct state
     } else {
       fetchProfile();
     }
 
+    // TODO: create a game channel for broadcasting curr hole updates
+
   }, [profile]);
 
+  // GAME -- Refresh on hole change
   useEffect(() => {
     if (!profile) return;
 
@@ -118,7 +121,7 @@ export default function fairways() {
       cancelAnimationFrame(requestID);
     }
 
-  }, [profile]);
+  }, [profile, currHole]);
 
   return (
     <div className="flex flex-col w-full h-[calc(100dvh)] bg-blue-400 overflow-hidden">
