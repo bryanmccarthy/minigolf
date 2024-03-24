@@ -25,6 +25,20 @@ export default function fairways() {
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
   const [currHole, setCurrHole] = useState<number>(0);
 
+  const updatePlayerPosition = async (x: number, y: number) => {
+    console.log("Updating player: ", profile?.id, x, y);
+
+    const { error } = await supabase
+      .from("balls")
+      .update({ x, y })
+      .eq("profile_id", profile?.id);
+    if (error) {
+      console.log("Error updating player position: ", error.message);
+    } else {
+      console.log("Player position updated to: ", x, y);
+    }
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       const { data } = await supabase
@@ -85,9 +99,73 @@ export default function fairways() {
     const targetFps = 60;
     const timeStep = 1000 / targetFps;
 
+    // Mouse
+    let mouseX = 0;
+    let mouseY = 0;
+    let isMouseDown = false;
+    let mouseDownX = 0;
+    let mouseDownY = 0;
+
+    // Ball
+    const ball = new Ball(
+      profile.id,
+      `${profile.display_name} (ME)`,
+      WIDTH / 2,
+      HEIGHT / 2,
+      0,
+      0,
+      10,
+      "white"
+    );
+
     // Create current hole
     const currentHole = holes[currHole];
     const hole = new Hole(currentHole.holePos[0], currentHole.holePos[1], 20);
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (ball.strokeState === "moving") return;
+
+      isMouseDown = true;
+      const rect = canvas.getBoundingClientRect();
+      mouseDownX = e.clientX - rect.left;
+      mouseDownY = e.clientY - rect.top;
+    };
+
+    const handleMouseUp = async (e: MouseEvent) => {
+      if (ball.strokeState === "moving") return;
+      if (ball.strokeState === "inHole") {
+        ball.strokeState = "still";
+        ball.x = WIDTH / 2;
+        ball.y = HEIGHT / 2;
+        ball.vx = 0;
+        ball.vy = 0;
+        isMouseDown = false;
+        // updatePlayerPosition(ball.x, ball.y);
+        return;
+      }
+
+      isMouseDown = false;
+      const rect = canvas.getBoundingClientRect();
+      const mouseUpX = e.clientX - rect.left;
+      const mouseUpY = e.clientY - rect.top;
+      ball.hit(mouseUpX, mouseUpY);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (ball.strokeState === "moving") return;
+
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+
+      if (isMouseDown) {
+        const rect = canvas.getBoundingClientRect();
+        mouseDownX = e.clientX - rect.left;
+        mouseDownY = e.clientY - rect.top;
+      }
+    };
+
+
 
     const updateGame = async (timestamp: number) => {
       const deltaTime = timestamp - lastTimestamp;
@@ -95,6 +173,15 @@ export default function fairways() {
       if (deltaTime < timeStep) {
         requestAnimationFrame(updateGame);
         return;
+      }
+
+      // Update ball
+      ball.update();
+
+      // Update player position
+      if (ball.strokeState === "finished") {
+        updatePlayerPosition(ball.x, ball.y);
+        ball.strokeState = "still";
       }
 
       // Clear the canvas
@@ -107,6 +194,10 @@ export default function fairways() {
       // Draw hole
       hole.draw(ctx);
 
+      // Draw ball
+      ball.draw(ctx);
+      if (isMouseDown) ball.drawPower(ctx, mouseDownX, mouseDownY);
+
       // Update the last timestamp
       lastTimestamp = timestamp - (deltaTime % timeStep);
 
@@ -117,8 +208,16 @@ export default function fairways() {
     // Start the game loop
     requestID = requestAnimationFrame(updateGame);
 
+    // Add event listeners
+    canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("mouseup", handleMouseUp);
+    canvas.addEventListener("mousemove", handleMouseMove);
+
     return () => {
       cancelAnimationFrame(requestID);
+      canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener("mouseup", handleMouseUp);
+      canvas.removeEventListener("mousemove", handleMouseMove);
     }
 
   }, [profile, currHole]);
