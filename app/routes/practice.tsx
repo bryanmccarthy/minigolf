@@ -176,12 +176,12 @@ export default function game() {
       new Hole(700, 300, 20),
     ];
     const obstacles = [
-      new Obstacle(150, 150, 10, 80, "gray"),
-      new Obstacle(150, 150, 80, 10, "gray"),
-      new Obstacle(230, 80, 10, 80, "gray"),
-      new Obstacle(230, 450, 80, 10, "gray"),
-      new Obstacle(310, 450, 10, 80, "gray"),
-      new Obstacle(600, 250, 10, 100, "gray"),
+      new Obstacle(150, 150, 10, 80, "darkred"),
+      new Obstacle(150, 150, 80, 10, "darkred"),
+      new Obstacle(230, 80, 10, 80, "darkred"),
+      new Obstacle(230, 450, 80, 10, "darkred"),
+      new Obstacle(310, 450, 10, 80, "darkred"),
+      new Obstacle(600, 250, 10, 100, "darkred"),
     ];
     const numObstacles = obstacles.length;
 
@@ -315,7 +315,6 @@ export default function game() {
           } else if (side === "left" || side === "right") {
             ball.vx *= -1;
           }
-
         }
       }
 
@@ -365,14 +364,14 @@ export default function game() {
       ctx.fillStyle = "lightgreen";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Holes
-      for (let i = 0; i < holes.length; i++) {
-        holes[i].draw(ctx);
-      }
-
       // Obstacles
       for (let i = 0; i < obstacles.length; i++) {
         obstacles[i].draw(ctx);
+      }
+
+      // Holes
+      for (let i = 0; i < holes.length; i++) {
+        holes[i].draw(ctx);
       }
 
       // Ball
