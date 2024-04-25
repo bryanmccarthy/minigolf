@@ -183,6 +183,7 @@ export default function game() {
       new Obstacle(310, 450, 10, 80, "gray"),
       new Obstacle(600, 250, 10, 100, "gray"),
     ];
+    const numObstacles = obstacles.length;
 
     // Party Members
     const membersBalls: any[] = partyMembersBalls
@@ -305,32 +306,16 @@ export default function game() {
       }
 
       // Obstacle Collisions
-      for (let i = 0; i < obstacles.length; i++) {
-        const obstacle = obstacles[i];
-        if (
-          ball.x + ball.radius > obstacle.x &&
-          ball.x - ball.radius < obstacle.x + obstacle.width &&
-          ball.y + ball.radius > obstacle.y &&
-          ball.y - ball.radius < obstacle.y + obstacle.height
-        ) {
-          if (ball.x + ball.radius > obstacle.x && ball.vx > 0) {
-            ball.x = obstacle.x - ball.radius;
-            ball.vx = -ball.vx;
-          } else if (ball.x - ball.radius < obstacle.x + obstacle.width && ball.vx < 0) {
-            ball.x = obstacle.x + obstacle.width + ball.radius;
-            ball.vx = -ball.vx;
+      for (let i=0; i < numObstacles; i++) {
+        if (obstacles[i].collides(ball.x, ball.y, ball.radius)) {
+          const side = obstacles[i].collisionSide(ball.x, ball.y, ball.radius);
+
+          if (side === "top" || side === "bottom") {
+            ball.vy *= -1;
+          } else if (side === "left" || side === "right") {
+            ball.vx *= -1;
           }
 
-          if (ball.y + ball.radius > obstacle.y && ball.vy > 0) {
-            ball.y = obstacle.y - ball.radius;
-            ball.vy = -ball.vy;
-          } else if (ball.y - ball.radius < obstacle.y + obstacle.height && ball.vy < 0) {
-            ball.y = obstacle.y + obstacle.height + ball.radius;
-            ball.vy = -ball.vy;
-          }
-
-          ball.vx *= 0.8;
-          ball.vy *= 0.8;
         }
       }
 
