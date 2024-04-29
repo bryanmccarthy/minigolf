@@ -13,6 +13,7 @@ export default function game() {
   const [partyMembers, setPartyMembers] = useState<Profile[]>([]);
   const [partyMembersBalls, setPartyMembersBalls] = useState<any[]>([]);
   const [ballPos, setBallPos] = useState<any | null>(null);
+  const [loadedInitialGameObjects, setLoadedInitialGameObjects] = useState(false);
 
   const updatePlayerPosition = async (x: number, y: number) => {
     console.log("Updating player: ", profile?.id, x, y);
@@ -87,11 +88,11 @@ export default function game() {
     };
 
     if (profile) {
-      // TODO: wip
       console.log("Profile: ", profile);
       fetchPartyMembers();
       fetchPartyMembersBalls();
       fetchBall();
+      setLoadedInitialGameObjects(true);
     } else {
       fetchProfile();
     }
@@ -134,7 +135,7 @@ export default function game() {
   }, [profile]);
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !loadedInitialGameObjects) return;
 
     const canvas = canvasRef.current;
     const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
